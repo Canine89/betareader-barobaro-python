@@ -58,13 +58,14 @@ export default function HomePage() {
         {/* 히어로: 좌측 카피, 우측 표지 */}
         <section className="mx-auto grid max-w-7xl grid-cols-1 items-center gap-12 px-4 pb-20 pt-10 sm:px-6 lg:grid-cols-12 lg:gap-8 lg:pt-12">
           <div className="lg:col-span-7">
-            <h1 className="max-w-[16ch] text-4xl font-extrabold leading-[1.12] tracking-[-0.02em] sm:text-5xl lg:text-6xl">
-              출간 전 원고를{" "}
-              <span className="marker">가장 먼저</span> 읽을 베타리더를 찾습니다
+            <h1 className="max-w-[15ch] text-4xl font-extrabold leading-[1.12] tracking-[-0.02em] sm:text-5xl lg:text-6xl">
+              <span className="marker">읽고, 표시하고,</span>
+              <br />
+              소감을 남겨 주세요
             </h1>
             <p className="mt-6 max-w-[34ch] text-lg leading-relaxed text-[var(--muted)] sm:text-xl">
-              《{SITE.bookTitle}》 조판을 마쳤습니다. 읽고, 표시하고, 소감을 남겨
-              주세요. 완성된 종이책을 무료로 보내 드립니다.
+              《{SITE.bookTitle}》 베타리더를 모집합니다! 두 가지 미션을{" "}
+              {DEADLINE_LABEL}까지 완수하면 완성된 종이책을 무료로 보내 드려요!
             </p>
             <div className="mt-9 flex flex-wrap items-center gap-3">
               <Link href="/apply" className="btn btn-primary text-base">
