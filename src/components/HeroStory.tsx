@@ -11,13 +11,13 @@ import {
   useTransform,
   type MotionValue,
 } from "motion/react";
-import { ArrowRight, PencilSimpleLine } from "@phosphor-icons/react";
+import { ArrowRight } from "@phosphor-icons/react";
 import { APPLY_DEADLINE_SHORT, DEADLINE_LABEL, SITE } from "@/lib/site";
 
 /*
   스크롤 스토리 히어로
   - 히어로가 220vh 동안 고정되고, 스크롤 진행도에 따라 헤드라인 세 단어에 형광펜이 순서대로 칠해진다.
-  - 같은 진행도로 표지 위에 형광펜 줄과 오탈자 포스트잇이 차례로 나타난다.
+  - "표시하고" 단계에서는 형광펜 대신 펜으로 단어에 동그라미를 그리고 "오탈자 발견!"이 손글씨처럼 쓰인다. 표지에는 아무 표시도 하지 않는다.
   - 왜: 미션(읽고, 표시하고, 추천하라)을 스크롤 한 번으로 설명하기 위한 스토리텔링.
   - 모바일(<lg)과 prefers-reduced-motion에서는 고정 없이 완성 상태를 정적으로 보여 준다.
 */
@@ -74,14 +74,63 @@ function MarkerWord({ word, fill }: { word: string; fill: MotionValue<number> })
   );
 }
 
-function StickyNote({ className }: { className?: string }) {
+/** 펜으로 단어에 동그라미를 치고 옆에 메모를 쓰는 표시 */
+const LOOP_PATH = "M 8,22 C 10,6 40,2 60,4 C 85,6 98,14 96,24 C 94,36 60,40 35,38 C 12,36 2,28 6,20 C 8,14 20,10 32,9";
+
+function PenWord({
+  word,
+  mode,
+  pathLen,
+  clipPath,
+}: {
+  word: string;
+  mode: "scroll" | "inview" | "static";
+  pathLen?: MotionValue<number>;
+  clipPath?: MotionValue<string>;
+}) {
+  // Motion은 SVG path의 pathLength를 stroke-dasharray/offset으로 변환해 그린다.
+  const pathProps =
+    mode === "scroll"
+      ? { style: { pathLength: pathLen } }
+      : mode === "inview"
+        ? { initial: { pathLength: 0 }, whileInView: { pathLength: 1 }, viewport: { once: true }, transition: { duration: 0.9, delay: 0.4, ease: "easeInOut" as const } }
+        : {};
+  const labelProps =
+    mode === "scroll"
+      ? { style: { clipPath } }
+      : mode === "inview"
+        ? { initial: { clipPath: "inset(0 100% 0 0)" }, whileInView: { clipPath: "inset(0 0% 0 0)" }, viewport: { once: true }, transition: { duration: 0.5, delay: 1.3, ease: "easeOut" as const } }
+        : {};
+
   return (
-    <div
-      className={`flex items-center gap-2 rounded-[6px] bg-[var(--color-brand-yellow)] px-4 py-3 text-sm font-bold text-[#15181f] shadow-[0_14px_30px_-14px_rgba(0,0,0,0.45)] ${className ?? ""}`}
-    >
-      <PencilSimpleLine size={18} weight="bold" aria-hidden />
-      오탈자 발견!
-    </div>
+    <span className="relative inline-block px-[0.06em]">
+      {word}
+      <svg
+        className="pointer-events-none absolute -inset-x-[0.18em] -inset-y-[0.12em] h-[calc(100%+0.24em)] w-[calc(100%+0.36em)] overflow-visible"
+        viewBox="0 0 100 40"
+        preserveAspectRatio="none"
+        aria-hidden
+      >
+        <motion.path
+          d={LOOP_PATH}
+          fill="none"
+          stroke="var(--accent)"
+          strokeWidth={3}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          vectorEffect="non-scaling-stroke"
+          {...pathProps}
+        />
+      </svg>
+      <motion.span
+        className="absolute -right-[0.3em] -top-[0.95em] whitespace-nowrap text-[0.3em] font-bold tracking-tight text-[var(--accent)]"
+        style={{ rotate: -4 }}
+        aria-hidden
+        {...labelProps}
+      >
+        오탈자 발견!
+      </motion.span>
+    </span>
   );
 }
 
@@ -93,17 +142,15 @@ function DesktopStory() {
   const { scrollYProgress } = useScroll({ target: ref, offset: ["start start", "end end"] });
 
   const fill0 = useTransform(scrollYProgress, RANGES[0], [0, 100]);
-  const fill1 = useTransform(scrollYProgress, RANGES[1], [0, 100]);
   const fill2 = useTransform(scrollYProgress, RANGES[2], [0, 100]);
-  const fills = [fill0, fill1, fill2];
+  // "표시하고": 펜 동그라미(선 길이) → 메모 글씨(왼쪽부터 드러남)
+  const loopLength = useTransform(scrollYProgress, [0.34, 0.54], [0, 1]);
+  const labelInset = useTransform(scrollYProgress, [0.55, 0.64], [100, 0]);
+  const labelClip = useMotionTemplate`inset(0 ${labelInset}% 0 0)`;
 
   const rotate = useTransform(scrollYProgress, [0, 0.3], [-2.5, 0]);
   const scale = useTransform(scrollYProgress, [0, 0.3], [1, 1.03]);
 
-  const line1 = useTransform(scrollYProgress, [0.36, 0.46], [0, 1]);
-  const line2 = useTransform(scrollYProgress, [0.42, 0.52], [0, 1]);
-  // opacity 대신 scale 키프레임으로 등장시킨다 (scale 0 = 보이지 않음).
-  const noteScale = useTransform(scrollYProgress, [0.48, 0.5, 0.6], [0, 0.6, 1]);
 
   return (
     <div ref={ref} className="relative h-[220vh]">
@@ -111,10 +158,10 @@ function DesktopStory() {
         <div className="mx-auto grid w-full max-w-7xl grid-cols-12 items-center gap-8 px-6">
           <div className="col-span-7">
             <h1 className="max-w-[15ch] text-5xl font-extrabold leading-[1.12] tracking-[-0.02em] lg:text-6xl">
-              <MarkerWord word={WORDS[0]} fill={fills[0]} />{" "}
-              <MarkerWord word={WORDS[1]} fill={fills[1]} />
+              <MarkerWord word={WORDS[0]} fill={fill0} />{" "}
+              <PenWord word={WORDS[1]} mode="scroll" pathLen={loopLength} clipPath={labelClip} />
               <br />
-              <MarkerWord word={WORDS[2]} fill={fills[2]} />
+              <MarkerWord word={WORDS[2]} fill={fill2} />
             </h1>
             <HeroCopy />
           </div>
@@ -126,25 +173,6 @@ function DesktopStory() {
                 className="relative aspect-[1331/1815] w-full rounded-[10px] bg-white shadow-[0_40px_80px_-30px_rgba(14,77,161,0.45)] ring-1 ring-black/5"
               >
                 <Image src="/cover.png" alt={coverAlt} fill priority sizes="400px" className="rounded-[10px] object-cover" />
-                {/* 형광펜 줄: 표지 하단 키워드 줄 위에 */}
-                <motion.div
-                  style={{ scaleX: line1, transformOrigin: "left center" }}
-                  className="absolute left-[9%] top-[53.2%] h-[3.6%] w-[62%] bg-[var(--color-brand-yellow)]/70 mix-blend-multiply"
-                  aria-hidden
-                />
-                <motion.div
-                  style={{ scaleX: line2, transformOrigin: "left center" }}
-                  className="absolute left-[9%] top-[57.4%] h-[3.6%] w-[52%] bg-[var(--color-brand-yellow)]/70 mix-blend-multiply"
-                  aria-hidden
-                />
-              </motion.div>
-
-              <motion.div
-                style={{ scale: noteScale, rotate: -6 }}
-                className="absolute -right-8 top-[9%]"
-                aria-hidden
-              >
-                <StickyNote />
               </motion.div>
 
               <p className="mt-6 text-center text-xs text-[var(--faint)]">
@@ -160,14 +188,12 @@ function DesktopStory() {
 
 /** 모바일 / 모션 감소: 완성 상태를 정적으로 */
 function StaticStory({ animateIn }: { animateIn: boolean }) {
-  const pop = animateIn
-    ? { initial: { opacity: 0, scale: 0.7 }, whileInView: { opacity: 1, scale: 1 }, viewport: { once: true } }
-    : {};
   return (
-    <div className="mx-auto grid max-w-7xl grid-cols-1 items-center gap-12 px-4 pb-20 pt-10 sm:px-6 lg:grid-cols-12 lg:gap-8">
+    <div className="mx-auto grid max-w-7xl grid-cols-1 items-center gap-12 px-4 pb-20 pt-12 sm:px-6 lg:grid-cols-12 lg:gap-8">
       <div className="lg:col-span-7">
         <h1 className="max-w-[15ch] text-4xl font-extrabold leading-[1.12] tracking-[-0.02em] sm:text-5xl lg:text-6xl">
-          <span className="marker">{WORDS[0]}</span> <span className="marker">{WORDS[1]}</span>
+          <span className="marker">{WORDS[0]}</span>{" "}
+          <PenWord word={WORDS[1]} mode={animateIn ? "inview" : "static"} />
           <br />
           <span className="marker">{WORDS[2]}</span>
         </h1>
@@ -177,12 +203,7 @@ function StaticStory({ animateIn }: { animateIn: boolean }) {
         <div className="relative mx-auto w-full max-w-[420px]">
           <div className="relative aspect-[1331/1815] w-full -rotate-[2.5deg] rounded-[10px] bg-white shadow-[0_40px_80px_-30px_rgba(14,77,161,0.45)] ring-1 ring-black/5">
             <Image src="/cover.png" alt={coverAlt} fill priority sizes="(max-width: 1024px) 420px, 400px" className="rounded-[10px] object-cover" />
-            <div className="absolute left-[9%] top-[53.2%] h-[3.6%] w-[62%] bg-[var(--color-brand-yellow)]/70 mix-blend-multiply" aria-hidden />
-            <div className="absolute left-[9%] top-[57.4%] h-[3.6%] w-[52%] bg-[var(--color-brand-yellow)]/70 mix-blend-multiply" aria-hidden />
           </div>
-          <motion.div {...pop} transition={{ duration: 0.5, delay: 0.3, ease: [0.16, 1, 0.3, 1] }} className="absolute -right-3 top-[9%] -rotate-6 sm:-right-6" aria-hidden>
-            <StickyNote />
-          </motion.div>
           <p className="mt-6 text-center text-xs text-[var(--faint)]">
             표지는 초안이며 출간 시 달라질 수 있습니다.
           </p>
