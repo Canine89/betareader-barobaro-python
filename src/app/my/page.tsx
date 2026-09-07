@@ -13,7 +13,14 @@ import {
 import { Nav } from "@/components/Nav";
 import { Footer } from "@/components/Footer";
 import { createClient } from "@/lib/supabase/server";
-import { DEADLINE_LABEL, daysUntilDeadline, isPastDeadline } from "@/lib/site";
+import {
+  ANNOUNCE_LABEL,
+  APPLY_DEADLINE_LABEL,
+  DEADLINE_LABEL,
+  daysUntilDeadline,
+  isAnnounced,
+  isPastDeadline,
+} from "@/lib/site";
 import { ReviewForm } from "./ReviewForm";
 import { PdfUpload } from "./PdfUpload";
 
@@ -41,7 +48,10 @@ export default async function MyPage({ searchParams }: PageProps<"/my">) {
 
   const past = isPastDeadline();
   const dday = daysUntilDeadline();
-  const accepted = app?.status === "accepted";
+  const announced = isAnnounced();
+  // 발표 시각 전에는 관리자가 미리 승인해 두어도 심사 중으로 보인다.
+  const visibleStatus = app ? (announced ? app.status : "pending") : null;
+  const accepted = visibleStatus === "accepted";
 
   // 승인된 베타리더에게 원고 PDF 링크 제공
   let manuscripts: { name: string; url: string }[] = [];
@@ -88,16 +98,21 @@ export default async function MyPage({ searchParams }: PageProps<"/my">) {
 
           {sp.applied === "1" && (
             <p role="status" className="mt-6 rounded-[var(--radius-field)] bg-[var(--accent-soft)] px-4 py-3 text-sm font-medium text-[var(--accent)]">
-              신청서를 받았습니다. 승인되면 이 페이지에서 원고를 내려받을 수 있습니다.
+              신청서를 받았습니다. 선정 결과는 {ANNOUNCE_LABEL}에 이 페이지에서 확인할 수 있습니다.
             </p>
           )}
 
           {/* 신청 상태 */}
           <section className="mt-10 rounded-[var(--radius-card)] border border-[var(--line)] bg-[var(--surface)] p-6 sm:p-8">
             <h2 className="text-lg font-bold">신청 상태</h2>
+            {app && !announced && (
+              <p className="mt-3 text-sm text-[var(--muted)]">
+                선정 결과는 {ANNOUNCE_LABEL}에 이곳에서 발표됩니다.
+              </p>
+            )}
             {app ? (
               (() => {
-                const s = STATUS[app.status as keyof typeof STATUS];
+                const s = STATUS[visibleStatus as keyof typeof STATUS];
                 return (
                   <div className="mt-4 flex flex-wrap items-center justify-between gap-4">
                     <span className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold ${s.tone}`}>
@@ -163,10 +178,10 @@ export default async function MyPage({ searchParams }: PageProps<"/my">) {
             {!accepted ? (
               <div className="mt-4 rounded-[var(--radius-card)] border border-dashed border-[var(--line)] p-6 text-[var(--muted)]">
                 {app
-                  ? app.status === "rejected"
+                  ? visibleStatus === "rejected"
                     ? "이번 베타리딩에는 참여하지 못하게 되었습니다. 관심 가져 주셔서 고맙습니다."
-                    : "승인이 완료되면 여기서 소감 작성과 PDF 업로드가 열립니다."
-                  : "신청서를 먼저 작성해 주세요."}
+                    : `${ANNOUNCE_LABEL} 발표 후 선정된 분에게 소감 작성과 PDF 업로드가 열립니다.`
+                  : `신청서를 먼저 작성해 주세요. 신청은 ${APPLY_DEADLINE_LABEL}까지 받습니다.`}
               </div>
             ) : (
               <div className="mt-4 grid gap-6">

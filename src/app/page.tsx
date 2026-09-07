@@ -13,22 +13,33 @@ import { Footer } from "@/components/Footer";
 import { HeroCover } from "@/components/HeroCover";
 import { Reveal } from "@/components/Reveal";
 import {
+  ANNOUNCE_LABEL,
+  APPLY_DEADLINE,
+  APPLY_DEADLINE_LABEL,
+  APPLY_DEADLINE_SHORT,
   DEADLINE_LABEL,
+  DEADLINE_SHORT,
   REVIEW_TARGET_CHARS,
   SITE,
+  daysUntil,
   daysUntilDeadline,
+  isApplyClosed,
 } from "@/lib/site";
 
 export const dynamic = "force-dynamic";
 
 const faqs = [
   {
+    q: "언제까지 신청할 수 있나요?",
+    a: `${APPLY_DEADLINE_LABEL}까지 신청을 받습니다. 선정 결과는 ${ANNOUNCE_LABEL}에 내 페이지에서 확인할 수 있습니다.`,
+  },
+  {
     q: "누구나 신청할 수 있나요?",
     a: "네. 파이썬을 처음 배우는 분이라면 더 환영합니다. 프로그래밍 경험이 없어도 괜찮습니다. 입문서는 입문자의 눈으로 읽어야 제대로 다듬어집니다.",
   },
   {
     q: "원고는 어떻게 받나요?",
-    a: "신청이 승인되면 내 페이지에 원고 PDF 다운로드 버튼이 열립니다. 승인 결과도 내 페이지에서 확인할 수 있습니다.",
+    a: `${ANNOUNCE_LABEL} 발표와 함께 선정된 분의 내 페이지에 원고 PDF 다운로드 버튼이 열립니다.`,
   },
   {
     q: "PDF 주석은 어떻게 남기나요?",
@@ -49,6 +60,8 @@ const faqs = [
 ];
 
 export default function HomePage() {
+  const applyClosed = isApplyClosed();
+  const applyDday = daysUntil(APPLY_DEADLINE);
   const dday = daysUntilDeadline();
 
   return (
@@ -64,8 +77,11 @@ export default function HomePage() {
               소감을 남겨 주세요
             </h1>
             <p className="mt-6 max-w-[34ch] text-lg leading-relaxed text-[var(--muted)] sm:text-xl">
-              《{SITE.bookTitle}》 베타리더를 모집합니다! 두 가지 미션을{" "}
-              {DEADLINE_LABEL}까지 완수하면 완성된 종이책을 무료로 보내 드려요!
+              《{SITE.bookTitle}》 베타리더를{" "}
+              <span className="whitespace-nowrap font-semibold text-[var(--fg)]">{APPLY_DEADLINE_SHORT}까지</span>{" "}
+              모집합니다! 두 가지 미션을{" "}
+              <span className="whitespace-nowrap">{DEADLINE_SHORT}까지</span> 완수하면 완성된
+              종이책을 무료로 보내 드려요!
             </p>
             <div className="mt-9 flex flex-wrap items-center gap-3">
               <Link href="/apply" className="btn btn-primary text-base">
@@ -204,19 +220,26 @@ export default function HomePage() {
           <div className="mx-auto max-w-7xl px-4 sm:px-6">
             <div className="grid grid-cols-1 gap-12 lg:grid-cols-12 lg:items-end">
               <Reveal className="lg:col-span-5">
-                <p className="text-lg font-semibold text-white/80">미션 마감까지</p>
+                <p className="text-lg font-semibold text-white/80">
+                  {applyClosed ? "미션 마감까지" : "신청 마감까지"}
+                </p>
                 <p className="mt-2 flex items-baseline gap-2">
                   <span className="text-7xl font-black leading-none tracking-tighter sm:text-8xl">
-                    D-{dday}
+                    D-{applyClosed ? dday : applyDday}
                   </span>
                 </p>
-                <p className="mt-4 text-white/80">{DEADLINE_LABEL} 자정에 제출이 닫힙니다.</p>
+                <p className="mt-4 text-white/80">
+                  {applyClosed
+                    ? `${DEADLINE_LABEL} 자정에 제출이 닫힙니다.`
+                    : `${APPLY_DEADLINE_LABEL} 자정에 신청이 닫힙니다.`}
+                </p>
               </Reveal>
               <Reveal delay={0.1} className="lg:col-span-7">
-                <ol className="grid grid-cols-1 gap-6 sm:grid-cols-3">
+                <ol className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
                   {[
-                    { when: "지금", what: "베타리더 신청", note: "구글 계정으로 로그인하고 신청서를 작성합니다." },
-                    { when: "승인 후", what: "원고 PDF 열람", note: "내 페이지에서 원고를 내려받아 읽습니다." },
+                    { when: `${APPLY_DEADLINE_LABEL}까지`, what: "베타리더 신청", note: "구글 계정으로 로그인하고 신청서를 작성합니다." },
+                    { when: ANNOUNCE_LABEL, what: "선정 발표", note: "내 페이지에서 결과를 확인하고 원고 PDF를 내려받습니다." },
+                    { when: "발표 후", what: "원고 읽기", note: "읽으면서 오탈자와 오류에 주석을 남깁니다." },
                     { when: DEADLINE_LABEL, what: "미션 제출 마감", note: "소감과 주석 PDF를 제출합니다." },
                   ].map((s) => (
                     <li key={s.what} className="border-t border-white/30 pt-4">
@@ -264,7 +287,8 @@ export default function HomePage() {
                 첫 독자의 자리, 지금 신청하세요
               </h2>
               <p className="mx-auto mt-4 max-w-[40ch] text-[var(--muted)]">
-                신청은 2분이면 끝납니다. 미션을 마치면 종이책이 집으로 갑니다.
+                신청은 {APPLY_DEADLINE_LABEL}까지, 2분이면 끝납니다. 미션을 마치면
+                종이책이 집으로 갑니다.
               </p>
               <Link href="/apply" className="btn btn-primary mt-8 text-base">
                 베타리더 신청하기

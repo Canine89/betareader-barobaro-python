@@ -8,9 +8,19 @@ export const SITE = {
     "출간 전 원고를 가장 먼저 읽고 의견을 남겨 주세요. 미션을 완료한 베타리더에게 종이책을 무료로 보내 드립니다.",
 };
 
+/** 베타리더 신청 마감: 2026년 9월 10일 23:59:59 (KST) */
+export const APPLY_DEADLINE = new Date("2026-09-10T23:59:59+09:00");
+export const APPLY_DEADLINE_LABEL = "2026년 9월 10일";
+export const APPLY_DEADLINE_SHORT = "9월 10일";
+
+/** 선정 발표: 2026년 9월 11일 오전 9시 (KST) */
+export const ANNOUNCE_AT = new Date("2026-09-11T09:00:00+09:00");
+export const ANNOUNCE_LABEL = "9월 11일 오전 9시";
+
 /** 미션 마감: 2026년 9월 22일 23:59:59 (KST) */
 export const DEADLINE = new Date("2026-09-22T23:59:59+09:00");
 export const DEADLINE_LABEL = "2026년 9월 22일";
+export const DEADLINE_SHORT = "9월 22일";
 
 /** 소감 최소 글자 수. 워드 1/4 페이지(10pt)를 대략 450자로 본다. */
 export const REVIEW_MIN_CHARS = 400;
@@ -20,10 +30,22 @@ export const REVIEW_MAX_CHARS = 3000;
 export const PDF_MAX_BYTES = 50 * 1024 * 1024;
 
 /** KST 달력 기준 남은 일수 (마감일 당일 = D-0) */
-export function daysUntilDeadline(now = new Date()) {
+export function daysUntil(target: Date, now = new Date()) {
   const KST = 9 * 3_600_000;
   const dayOf = (d: Date) => Math.floor((d.getTime() + KST) / 86_400_000);
-  return Math.max(0, dayOf(DEADLINE) - dayOf(now));
+  return Math.max(0, dayOf(target) - dayOf(now));
+}
+
+export function daysUntilDeadline(now = new Date()) {
+  return daysUntil(DEADLINE, now);
+}
+
+export function isApplyClosed(now = new Date()) {
+  return now.getTime() > APPLY_DEADLINE.getTime();
+}
+
+export function isAnnounced(now = new Date()) {
+  return now.getTime() >= ANNOUNCE_AT.getTime();
 }
 
 export function isPastDeadline(now = new Date()) {

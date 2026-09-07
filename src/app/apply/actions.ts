@@ -3,6 +3,7 @@
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { APPLY_DEADLINE_LABEL, isApplyClosed } from "@/lib/site";
 
 export type ApplyState = {
   errors?: Partial<Record<"name" | "phone" | "address" | "email" | "consent" | "form", string>>;
@@ -37,6 +38,17 @@ export async function submitApplication(
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) redirect("/login?next=/apply");
+
+  if (isApplyClosed()) {
+    const { data: existing } = await supabase
+      .from("applications")
+      .select("id")
+      .eq("user_id", user.id)
+      .maybeSingle();
+    if (!existing) {
+      return { errors: { form: `베타리더 모집이 ${APPLY_DEADLINE_LABEL}에 마감되었습니다.` }, values };
+    }
+  }
 
   const { error } = await supabase.from("applications").upsert(
     {
