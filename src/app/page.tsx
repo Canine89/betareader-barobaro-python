@@ -18,7 +18,6 @@ import {
   APPLY_DEADLINE_LABEL,
   APPLY_DEADLINE_SHORT,
   DEADLINE_LABEL,
-  DEADLINE_SHORT,
   REVIEW_TARGET_CHARS,
   SITE,
   daysUntil,
@@ -72,16 +71,19 @@ export default function HomePage() {
         <section className="mx-auto grid max-w-7xl grid-cols-1 items-center gap-12 px-4 pb-20 pt-10 sm:px-6 lg:grid-cols-12 lg:gap-8 lg:pt-12">
           <div className="lg:col-span-7">
             <h1 className="max-w-[15ch] text-4xl font-extrabold leading-[1.12] tracking-[-0.02em] sm:text-5xl lg:text-6xl">
-              <span className="marker">읽고, 표시하고,</span>
+              읽고, 표시하고,
               <br />
-              소감을 남겨 주세요
+              추천하라!
             </h1>
-            <p className="mt-6 max-w-[34ch] text-lg leading-relaxed text-[var(--muted)] sm:text-xl">
+            <p className="mt-6 max-w-[34rem] text-lg leading-relaxed text-[var(--muted)] sm:text-xl">
               《{SITE.bookTitle}》 베타리더를{" "}
               <span className="whitespace-nowrap font-semibold text-[var(--fg)]">{APPLY_DEADLINE_SHORT}까지</span>{" "}
-              모집합니다! 두 가지 미션을{" "}
-              <span className="whitespace-nowrap">{DEADLINE_SHORT}까지</span> 완수하면 완성된
-              종이책을 무료로 보내 드려요!
+              모집합니다!
+              <br />
+              <span className="font-semibold text-[var(--fg)] underline decoration-[var(--color-brand-yellow)] decoration-[3px] underline-offset-[6px]">
+                두 가지 미션을 {DEADLINE_LABEL}까지 완수하면
+              </span>{" "}
+              완성된 종이책을 무료로 보내 드려요!
             </p>
             <div className="mt-9 flex flex-wrap items-center gap-3">
               <Link href="/apply" className="btn btn-primary text-base">
@@ -99,60 +101,50 @@ export default function HomePage() {
         </section>
 
         {/* 특전: 1 + 2 벤토 */}
-        <section id="perks" className="scroll-mt-20 bg-[var(--surface-2)] py-20 sm:py-24">
+        <section id="perks" className="scroll-mt-20 bg-[var(--surface-2)] py-14 sm:py-16">
           <div className="mx-auto max-w-7xl px-4 sm:px-6">
             <Reveal>
               <h2 className="text-3xl font-extrabold tracking-tight sm:text-4xl">
                 베타리더에게 드리는 것
               </h2>
-              <p className="mt-3 max-w-[48ch] text-[var(--muted)]">
-                읽어 주신 시간에 값하는 세 가지입니다.
-              </p>
             </Reveal>
 
-            <div className="mt-10 grid grid-cols-1 gap-4 lg:grid-cols-12 lg:grid-rows-2">
-              <Reveal className="rounded-[var(--radius-card)] bg-[var(--color-brand-yellow)] p-8 text-[#15181f] sm:p-10 lg:col-span-7 lg:row-span-2">
-                <div className="flex h-full flex-col justify-between gap-10">
-                  <Package size={44} weight="duotone" aria-hidden />
-                  <div>
-                    <p className="text-sm font-semibold uppercase tracking-[0.14em] text-[#5b4300]">
-                      베타리더 특전
-                    </p>
-                    <h3 className="mt-2 text-3xl font-extrabold leading-tight tracking-tight sm:text-4xl">
-                      도서 출간 후<br />종이책 무료 배송
-                    </h3>
-                    <p className="mt-4 max-w-[36ch] leading-relaxed text-[#3d2f00]">
-                      미션을 완료한 베타리더 모두에게 정식 출간된 《{SITE.bookTitle}》
-                      종이책을 집까지 무료로 보내 드립니다. 신청서에 적어 주신 주소로
-                      배송됩니다.
-                    </p>
-                  </div>
+            <div className="mt-8 grid grid-cols-1 gap-4 lg:grid-cols-12">
+              <Reveal className="flex items-center gap-6 rounded-[var(--radius-card)] bg-[var(--color-brand-yellow)] p-7 text-[#15181f] sm:p-8 lg:col-span-6">
+                <Package size={48} weight="duotone" className="hidden shrink-0 sm:block" aria-hidden />
+                <div>
+                  <p className="text-sm font-semibold uppercase tracking-[0.14em] text-[#5b4300]">
+                    베타리더 특전
+                  </p>
+                  <h3 className="mt-1 text-2xl font-extrabold leading-tight tracking-tight sm:text-3xl">
+                    도서 출간 후 종이책 무료 배송
+                  </h3>
+                  <p className="mt-2 max-w-[40ch] leading-relaxed text-[#3d2f00]">
+                    미션을 완료한 베타리더 모두에게 정식 출간된 종이책을 신청서의 주소로
+                    보내 드립니다.
+                  </p>
                 </div>
               </Reveal>
 
               <Reveal
                 delay={0.08}
-                className="rounded-[var(--radius-card)] bg-[var(--color-brand-blue)] p-8 text-white lg:col-span-5"
+                className="rounded-[var(--radius-card)] bg-[var(--color-brand-blue)] p-7 text-white lg:col-span-3"
               >
-                <BookOpenText size={32} weight="duotone" aria-hidden />
-                <h3 className="mt-5 text-xl font-bold tracking-tight">
-                  서점보다 먼저 읽는 원고
-                </h3>
-                <p className="mt-2 leading-relaxed text-white/85">
-                  조판까지 끝난 원고 PDF를 출간 전에 열어 봅니다. 첫 독자의 자리는
-                  몇 자리뿐입니다.
+                <BookOpenText size={28} weight="duotone" aria-hidden />
+                <h3 className="mt-3 text-lg font-bold tracking-tight">서점보다 먼저 읽는 원고</h3>
+                <p className="mt-1.5 text-sm leading-relaxed text-white/85">
+                  조판까지 끝난 원고 PDF를 출간 전에 열어 봅니다.
                 </p>
               </Reveal>
 
               <Reveal
                 delay={0.16}
-                className="rounded-[var(--radius-card)] border border-[var(--line)] bg-[var(--surface)] p-8 lg:col-span-5"
+                className="rounded-[var(--radius-card)] border border-[var(--line)] bg-[var(--surface)] p-7 lg:col-span-3"
               >
-                <PencilSimpleLine size={32} weight="duotone" className="text-[var(--accent)]" aria-hidden />
-                <h3 className="mt-5 text-xl font-bold tracking-tight">책에 남는 의견</h3>
-                <p className="mt-2 leading-relaxed text-[var(--muted)]">
-                  보내 주신 오탈자와 소감은 편집부가 하나씩 검토해 출간 원고에
-                  반영합니다.
+                <PencilSimpleLine size={28} weight="duotone" className="text-[var(--accent)]" aria-hidden />
+                <h3 className="mt-3 text-lg font-bold tracking-tight">책에 남는 의견</h3>
+                <p className="mt-1.5 text-sm leading-relaxed text-[var(--muted)]">
+                  보내 주신 오탈자와 소감은 편집부가 검토해 출간 원고에 반영합니다.
                 </p>
               </Reveal>
             </div>
@@ -167,7 +159,7 @@ export default function HomePage() {
                 {DEADLINE_LABEL}까지, 두 가지만 해 주세요
               </h2>
               <p className="mt-3 max-w-[48ch] text-[var(--muted)]">
-                두 미션 모두 내 페이지에서 제출합니다.
+                두 미션 모두 내 페이지에서 제출합니다. 선정 발표 후 열립니다.
               </p>
             </Reveal>
 
@@ -211,6 +203,16 @@ export default function HomePage() {
                   <dd className="font-mono text-[13px] text-[var(--muted)]">바로바로파이썬_홍길동.pdf</dd>
                 </dl>
               </Reveal>
+            </div>
+
+            <div className="mt-12 flex flex-wrap items-center gap-4">
+              <Link href="/my" className="btn btn-primary text-base">
+                미션 제출하러 가기
+                <ArrowRight size={18} weight="bold" aria-hidden />
+              </Link>
+              <p className="text-sm text-[var(--muted)]">
+                로그인 후 내 페이지에서 소감 작성란과 PDF 업로드가 열립니다.
+              </p>
             </div>
           </div>
         </section>
