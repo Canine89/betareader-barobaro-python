@@ -1,36 +1,35 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 바로바로 파이썬 베타리더 모집 사이트
 
-## Getting Started
+《바로바로 파이썬》(골든래빗) 베타리더를 모집하고, 미션(소감 작성·오탈자 주석 PDF 업로드)을 제출받는 사이트입니다.
 
-First, run the development server:
+- Next.js 16 (App Router) + Tailwind v4 + Motion
+- Supabase (Google OAuth, Postgres, Storage)
+- Vercel 배포
+
+## 로컬 실행
 
 ```bash
+cp .env.example .env.local   # Supabase URL / publishable key 입력
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Supabase
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- 마이그레이션: `supabase/migrations/` (`supabase db push`)
+- 인증 설정: `supabase/config.toml` (`supabase config push`)
+  - 환경 변수 `SUPABASE_AUTH_SITE_URL`, `SUPABASE_AUTH_EXTERNAL_GOOGLE_CLIENT_ID`, `SUPABASE_AUTH_EXTERNAL_GOOGLE_SECRET` 필요
+- 관리자: `public.admins` 테이블의 이메일로 로그인하면 `/admin` 사용 가능
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## 구조
 
-## Learn More
+| 경로 | 설명 |
+| --- | --- |
+| `/` | 모집 랜딩 (특전, 미션, 일정, FAQ) |
+| `/login` | Google 로그인 |
+| `/apply` | 신청서 (이름, 연락처, 주소, 이메일, 개인정보 동의) |
+| `/my` | 신청 상태, 원고 PDF 다운로드, 미션 제출 |
+| `/admin` | 신청자 관리, 승인, 제출물 확인, CSV, 원고 업로드 |
+| `/privacy` | 개인정보 처리방침 |
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+미션 마감은 `src/lib/site.ts`의 `DEADLINE`과 DB 정책(`before_deadline()`) 두 곳에 있습니다.

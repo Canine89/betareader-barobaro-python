@@ -1,26 +1,198 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/*
+  디자인 토큰
+  - 브랜드 색은 표지에서 추출: 코발트 블루 #0e4da1, 옐로 #faae17
+  - 액센트(인터랙션)는 블루 하나로 고정. 옐로는 표면 강조에만 쓴다.
+  - 모서리 규칙: 버튼 = pill, 카드/패널 = 24px, 입력 = 12px
+*/
+@theme {
+  --font-sans: var(--font-pretendard), "Pretendard Variable", Pretendard,
+    -apple-system, BlinkMacSystemFont, system-ui, "Apple SD Gothic Neo",
+    "Noto Sans KR", sans-serif;
+
+  --color-brand-blue: #0e4da1;
+  --color-brand-blue-deep: #0a3d80;
+  --color-brand-yellow: #faae17;
+
+  --color-bg: var(--bg);
+  --color-fg: var(--fg);
+  --color-muted: var(--muted);
+  --color-faint: var(--faint);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-line: var(--line);
+  --color-accent: var(--accent);
+  --color-accent-fg: var(--accent-fg);
+  --color-accent-soft: var(--accent-soft);
+  --color-yellow-soft: var(--yellow-soft);
+  --color-yellow-ink: var(--yellow-ink);
+
+  --radius-card: 24px;
+  --radius-field: 12px;
+
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+:root {
+  --bg: #fbfbfa;
+  --fg: #15181f;
+  --muted: #4b5060;
+  --faint: #7a8090;
+  --surface: #ffffff;
+  --surface-2: #f2f3f1;
+  --line: #e3e5e2;
+  --accent: #0e4da1;
+  --accent-fg: #ffffff;
+  --accent-soft: #e6eefb;
+  --yellow-soft: #fff1cc;
+  --yellow-ink: #6b4a00;
+  color-scheme: light;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --bg: #101317;
+    --fg: #f1f2f4;
+    --muted: #b3b8c3;
+    --faint: #7f8694;
+    --surface: #171b21;
+    --surface-2: #1f242c;
+    --line: #2b313b;
+    --accent: #4f8be6;
+    --accent-fg: #ffffff;
+    --accent-soft: #16294a;
+    --yellow-soft: #3a2b05;
+    --yellow-ink: #ffd36b;
+    color-scheme: dark;
+  }
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
   }
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font-sans);
+  font-feature-settings: "ss01", "cv11";
+  -webkit-font-smoothing: antialiased;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+
+::selection {
+  background: var(--color-brand-yellow);
+  color: #15181f;
+}
+
+/* 공통 버튼 */
+.btn {
+  @apply inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-full px-6 font-semibold transition-[transform,background-color,color,box-shadow] duration-200 select-none;
+  transition-timing-function: var(--ease-out-expo);
+  min-height: 3rem;
+}
+.btn:active {
+  transform: translateY(1px) scale(0.985);
+}
+.btn:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 3px;
+}
+.btn-primary {
+  background: var(--accent);
+  color: var(--accent-fg);
+  box-shadow: 0 8px 24px -12px color-mix(in oklab, var(--accent) 70%, transparent);
+}
+.btn-primary:hover {
+  background: color-mix(in oklab, var(--accent) 88%, black);
+}
+.btn-secondary {
+  background: var(--surface);
+  color: var(--fg);
+  border: 1px solid var(--line);
+}
+.btn-secondary:hover {
+  border-color: var(--faint);
+}
+.btn-ghost {
+  color: var(--fg);
+}
+.btn-ghost:hover {
+  background: var(--surface-2);
+}
+.btn[disabled],
+.btn[aria-disabled="true"] {
+  opacity: 0.55;
+  pointer-events: none;
+}
+
+/* 폼 */
+.field {
+  @apply w-full rounded-[var(--radius-field)] border bg-[var(--surface)] px-4 py-3 text-base text-[var(--fg)] transition-[border-color,box-shadow] duration-150;
+  border-color: var(--line);
+}
+.field::placeholder {
+  color: var(--faint);
+}
+.field:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 4px var(--accent-soft);
+}
+.field[aria-invalid="true"] {
+  border-color: #c2410c;
+}
+.label {
+  @apply block text-sm font-semibold text-[var(--fg)];
+}
+.help {
+  @apply text-sm text-[var(--muted)];
+}
+.error {
+  @apply text-sm font-medium;
+  color: #c2410c;
+}
+@media (prefers-color-scheme: dark) {
+  .error {
+    color: #fb923c;
+  }
+  .field[aria-invalid="true"] {
+    border-color: #fb923c;
+  }
+}
+
+/* 마커 강조 (형광펜) */
+.marker {
+  background-image: linear-gradient(
+    transparent 62%,
+    color-mix(in oklab, var(--color-brand-yellow) 75%, transparent) 62%
+  );
+  padding: 0 0.08em;
+}
+
+/* 아코디언 */
+details > summary {
+  list-style: none;
+  cursor: pointer;
+}
+details > summary::-webkit-details-marker {
+  display: none;
+}
+details[open] .faq-chevron {
+  transform: rotate(180deg);
 }

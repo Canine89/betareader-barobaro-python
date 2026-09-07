@@ -39,3 +39,9 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# local secrets
+.supabase-db-password.txt
+.env*.local
+.env
+supabase/.temp

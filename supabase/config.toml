@@ -1,0 +1,24 @@
+# Supabase 프로젝트 설정. `supabase config push`로 원격에 반영한다.
+project_id = "urnkrvkrctckwwuipmip"
+
+[auth]
+site_url = "env(SUPABASE_AUTH_SITE_URL)"
+additional_redirect_urls = [
+  "http://localhost:3000/auth/callback",
+  "http://localhost:3000/**",
+  "https://*.vercel.app/auth/callback",
+  "https://*.vercel.app/**",
+]
+jwt_expiry = 3600
+enable_refresh_token_rotation = true
+enable_signup = true
+
+[auth.email]
+enable_signup = false
+enable_confirmations = false
+
+[auth.external.google]
+enabled = true
+client_id = "env(SUPABASE_AUTH_EXTERNAL_GOOGLE_CLIENT_ID)"
+secret = "env(SUPABASE_AUTH_EXTERNAL_GOOGLE_SECRET)"
+skip_nonce_check = false
