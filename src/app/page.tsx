@@ -10,16 +10,14 @@ import {
 } from "@phosphor-icons/react/dist/ssr";
 import { Nav } from "@/components/Nav";
 import { Footer } from "@/components/Footer";
-import { HeroCover } from "@/components/HeroCover";
+import { HeroStory } from "@/components/HeroStory";
 import { Reveal } from "@/components/Reveal";
 import {
   ANNOUNCE_LABEL,
   APPLY_DEADLINE,
   APPLY_DEADLINE_LABEL,
-  APPLY_DEADLINE_SHORT,
   DEADLINE_LABEL,
   REVIEW_TARGET_CHARS,
-  SITE,
   daysUntil,
   daysUntilDeadline,
   isApplyClosed,
@@ -67,38 +65,8 @@ export default function HomePage() {
     <>
       <Nav />
       <main className="flex-1">
-        {/* 히어로: 좌측 카피, 우측 표지 */}
-        <section className="mx-auto grid max-w-7xl grid-cols-1 items-center gap-12 px-4 pb-20 pt-10 sm:px-6 lg:grid-cols-12 lg:gap-8 lg:pt-12">
-          <div className="lg:col-span-7">
-            <h1 className="max-w-[15ch] text-4xl font-extrabold leading-[1.12] tracking-[-0.02em] sm:text-5xl lg:text-6xl">
-              읽고, 표시하고,
-              <br />
-              추천하라!
-            </h1>
-            <p className="mt-6 max-w-[34rem] text-lg leading-relaxed text-[var(--muted)] sm:text-xl">
-              《{SITE.bookTitle}》 베타리더를{" "}
-              <span className="whitespace-nowrap font-semibold text-[var(--fg)]">{APPLY_DEADLINE_SHORT}까지</span>{" "}
-              모집합니다!
-              <br />
-              <span className="font-semibold text-[var(--fg)] underline decoration-[var(--color-brand-yellow)] decoration-[3px] underline-offset-[6px]">
-                두 가지 미션을 {DEADLINE_LABEL}까지 완수하면
-              </span>{" "}
-              완성된 종이책을 무료로 보내 드려요!
-            </p>
-            <div className="mt-9 flex flex-wrap items-center gap-3">
-              <Link href="/apply" className="btn btn-primary text-base">
-                베타리더 신청하기
-                <ArrowRight size={18} weight="bold" aria-hidden />
-              </Link>
-              <Link href="#missions" className="btn btn-secondary text-base">
-                미션 살펴보기
-              </Link>
-            </div>
-          </div>
-          <div className="lg:col-span-5 lg:pl-6">
-            <HeroCover />
-          </div>
-        </section>
+        {/* 히어로: 스크롤 스토리 (읽고 → 표시하고 → 추천하라) */}
+        <HeroStory />
 
         {/* 특전: 1 + 2 벤토 */}
         <section id="perks" className="scroll-mt-20 bg-[var(--surface-2)] py-14 sm:py-16">
