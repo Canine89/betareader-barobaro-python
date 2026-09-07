@@ -11,13 +11,13 @@ import {
   useTransform,
   type MotionValue,
 } from "motion/react";
-import { ArrowRight, PencilSimpleLine, Star } from "@phosphor-icons/react";
+import { ArrowRight, PencilSimpleLine } from "@phosphor-icons/react";
 import { APPLY_DEADLINE_SHORT, DEADLINE_LABEL, SITE } from "@/lib/site";
 
 /*
   스크롤 스토리 히어로
   - 히어로가 220vh 동안 고정되고, 스크롤 진행도에 따라 헤드라인 세 단어에 형광펜이 순서대로 칠해진다.
-  - 같은 진행도로 표지 위에 형광펜 줄, 오탈자 포스트잇, 추천 도장이 차례로 나타난다.
+  - 같은 진행도로 표지 위에 형광펜 줄과 오탈자 포스트잇이 차례로 나타난다.
   - 왜: 미션(읽고, 표시하고, 추천하라)을 스크롤 한 번으로 설명하기 위한 스토리텔링.
   - 모바일(<lg)과 prefers-reduced-motion에서는 고정 없이 완성 상태를 정적으로 보여 준다.
 */
@@ -85,17 +85,6 @@ function StickyNote({ className }: { className?: string }) {
   );
 }
 
-function Stamp({ className }: { className?: string }) {
-  return (
-    <div
-      className={`flex size-24 flex-col items-center justify-center rounded-full border-[5px] border-[var(--color-brand-blue)] bg-[var(--surface)] text-[var(--color-brand-blue)] shadow-[0_18px_40px_-18px_rgba(14,77,161,0.6)] ${className ?? ""}`}
-    >
-      <Star size={22} weight="fill" aria-hidden />
-      <span className="text-lg font-black leading-none tracking-tight">추천!</span>
-    </div>
-  );
-}
-
 const coverAlt = "바로바로 파이썬 표지 초안. 바로 배워 바로 쓰자! 박현규, 셀레나 지음, 골든래빗";
 
 /** 데스크톱: 스크롤 고정 스토리 */
@@ -115,8 +104,6 @@ function DesktopStory() {
   const line2 = useTransform(scrollYProgress, [0.42, 0.52], [0, 1]);
   // opacity 대신 scale 키프레임으로 등장시킨다 (scale 0 = 보이지 않음).
   const noteScale = useTransform(scrollYProgress, [0.48, 0.5, 0.6], [0, 0.6, 1]);
-  const stampScale = useTransform(scrollYProgress, [0.7, 0.72, 0.86], [0, 1.8, 1]);
-  const stampRotate = useTransform(scrollYProgress, [0.72, 0.86], [8, -10]);
 
   return (
     <div ref={ref} className="relative h-[220vh]">
@@ -160,14 +147,6 @@ function DesktopStory() {
                 <StickyNote />
               </motion.div>
 
-              <motion.div
-                style={{ scale: stampScale, rotate: stampRotate }}
-                className="absolute -left-8 bottom-[7%]"
-                aria-hidden
-              >
-                <Stamp />
-              </motion.div>
-
               <p className="mt-6 text-center text-xs text-[var(--faint)]">
                 표지는 초안이며 출간 시 달라질 수 있습니다.
               </p>
@@ -203,9 +182,6 @@ function StaticStory({ animateIn }: { animateIn: boolean }) {
           </div>
           <motion.div {...pop} transition={{ duration: 0.5, delay: 0.3, ease: [0.16, 1, 0.3, 1] }} className="absolute -right-3 top-[9%] -rotate-6 sm:-right-6" aria-hidden>
             <StickyNote />
-          </motion.div>
-          <motion.div {...pop} transition={{ duration: 0.5, delay: 0.55, ease: [0.16, 1, 0.3, 1] }} className="absolute -left-3 bottom-[9%] -rotate-[10deg] sm:-left-6" aria-hidden>
-            <Stamp />
           </motion.div>
           <p className="mt-6 text-center text-xs text-[var(--faint)]">
             표지는 초안이며 출간 시 달라질 수 있습니다.
