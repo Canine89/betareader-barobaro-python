@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import Image from "next/image";
-import { AnimatePresence, motion, useMotionValue, useReducedMotion, animate } from "motion/react";
+import { AnimatePresence, motion, useInView, useMotionValue, useReducedMotion, animate } from "motion/react";
 import { ArrowLeft, ArrowRight, ArrowsIn, MagnifyingGlassMinus, MagnifyingGlassPlus, X } from "@phosphor-icons/react";
 import { TransformComponent, TransformWrapper } from "react-zoom-pan-pinch";
 
@@ -23,8 +23,10 @@ const pages = Array.from({ length: PAGE_COUNT }, (_, i) => ({
   src: `/pages/p-${String(i + 1).padStart(2, "0")}.webp`,
 }));
 
-const CARD_W = 210; // px, 데스크톱
 const OVERLAP = 0.62; // 다음 장이 앞 장을 덮는 비율
+// 카드 폭은 CSS로 반응형 처리(모바일 150px, sm 이상 210px). 겹침 여백은 폭 × OVERLAP.
+const CARD_CLASS = "w-[150px] sm:w-[210px]";
+const OVERLAP_CLASS = "-ml-[93px] sm:-ml-[130px]";
 
 export function PagePreview() {
   const reduce = useReducedMotion();
@@ -33,7 +35,8 @@ export function PagePreview() {
   const x = useMotionValue(0);
   const [bounds, setBounds] = useState({ left: 0, right: 0 });
   const [open, setOpen] = useState<number | null>(null);
-  const [spread, setSpread] = useState(false);
+  // 펼침 트리거는 가로로 긴 띠가 아니라 섹션 컨테이너 기준 (모바일에서도 확실히 발동)
+  const spread = useInView(viewportRef, { once: true, amount: 0.35 });
   const dragging = useRef(false);
 
   const measure = useCallback(() => {
@@ -98,7 +101,8 @@ export function PagePreview() {
     };
   }, [open]);
 
-  const stackDistance = (i: number) => -i * CARD_W * (1 - OVERLAP); // 첫 장 위치로 모으는 거리
+  // 첫 장 위치로 모으는 거리: 각 카드 폭의 백분율이라 화면 크기와 무관하게 정확히 겹친다
+  const stackDistance = (i: number) => `${-i * (1 - OVERLAP) * 100}%`;
 
   return (
     <>
@@ -116,9 +120,7 @@ export function PagePreview() {
             style={{ x }}
             onDragStart={() => (dragging.current = true)}
             onDragEnd={() => window.setTimeout(() => (dragging.current = false), 50)}
-            className="flex w-max cursor-grab items-end pl-6 pr-24 active:cursor-grabbing sm:pl-10"
-            onViewportEnter={() => setSpread(true)}
-            viewport={{ once: true, amount: 0.3 }}
+            className="flex w-max cursor-grab items-end pl-4 pr-16 active:cursor-grabbing sm:pl-10 sm:pr-24"
           >
             {pages.map((p, i) => {
               const tilt = ((i % 3) - 1) * 1.6; // -1.6, 0, 1.6도 번갈아
@@ -141,23 +143,21 @@ export function PagePreview() {
                     stiffness: 140,
                     damping: 18,
                     mass: 0.8,
-                    delay: reduce ? 0 : i * 0.045,
+                    delay: reduce ? 0 : i * 0.04,
                   }}
                   whileHover={reduce ? undefined : { y: -14, rotate: 0, scale: 1.04, zIndex: 100, transition: { duration: 0.25 } }}
                   style={{
-                    width: CARD_W,
-                    marginLeft: i === 0 ? 0 : -CARD_W * OVERLAP,
                     zIndex: PAGE_COUNT - i, // 앞 장이 위에 오도록 (쌓였을 때 1쪽이 맨 위)
                     transformOrigin: "bottom left",
                   }}
-                  className="relative shrink-0 select-none overflow-hidden rounded-[6px] bg-white shadow-[0_18px_40px_-18px_rgba(14,77,161,0.5)] ring-1 ring-black/10 focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-[var(--accent)]"
+                  className={`relative shrink-0 select-none overflow-hidden rounded-[6px] bg-white shadow-[0_18px_40px_-18px_rgba(14,77,161,0.5)] ring-1 ring-black/10 focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-[var(--accent)] ${CARD_CLASS} ${i === 0 ? "" : OVERLAP_CLASS}`}
                 >
                   <Image
                     src={p.src}
                     alt={`바로바로 파이썬 ${p.n}쪽 미리보기`}
                     width={IMG_W}
                     height={IMG_H}
-                    sizes="210px"
+                    sizes="(max-width: 640px) 150px, 210px"
                     draggable={false}
                     className="pointer-events-none block h-auto w-full"
                   />
@@ -171,7 +171,10 @@ export function PagePreview() {
         </div>
 
         <div className="mt-2 flex items-center justify-between gap-4 px-1">
-          <p className="text-sm text-[var(--muted)]">끌어서 넘기거나 한 장을 눌러 크게 보세요.</p>
+          <p className="text-sm text-[var(--muted)]">
+            <span className="sm:hidden">옆으로 밀어 넘기고, 한 장을 눌러 크게 보세요.</span>
+            <span className="hidden sm:inline">끌어서 넘기거나 한 장을 눌러 크게 보세요.</span>
+          </p>
           <div className="flex gap-2">
             <button type="button" onClick={() => step(-1)} className="btn btn-secondary !min-h-10 !px-3" aria-label="이전 페이지들">
               <ArrowLeft size={18} weight="bold" aria-hidden />
