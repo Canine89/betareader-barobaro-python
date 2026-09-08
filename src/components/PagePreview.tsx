@@ -233,7 +233,7 @@ export function PagePreview() {
                         priority
                         draggable={false}
                         onLoad={() => setLoadedPage(open)}
-                        className="block h-[80dvh] w-auto max-w-[94vw] select-none object-contain"
+                        className="block max-h-[80dvh] w-auto max-w-[94vw] select-none object-contain"
                       />
                       {loadedPage !== open && (
                         <div className="absolute inset-0 flex items-center justify-center bg-white/80" aria-live="polite">
