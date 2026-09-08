@@ -2,6 +2,7 @@
 
 import { useActionState } from "react";
 import Link from "next/link";
+import { CircleNotch } from "@phosphor-icons/react";
 import { submitApplication, type ApplyState } from "./actions";
 
 type Props = {
@@ -71,7 +72,8 @@ export function ApplyForm({ defaults, isEdit }: Props) {
       {e.form && <p role="alert" className="error">{e.form}</p>}
 
       <div className="flex flex-wrap items-center gap-3">
-        <button type="submit" className="btn btn-primary text-base" disabled={pending}>
+        <button type="submit" className="btn btn-primary text-base" disabled={pending} aria-busy={pending}>
+          {pending && <CircleNotch size={18} weight="bold" className="animate-spin" aria-hidden />}
           {pending ? "저장 중..." : isEdit ? "신청 정보 수정" : "신청 제출"}
         </button>
         {isEdit && (

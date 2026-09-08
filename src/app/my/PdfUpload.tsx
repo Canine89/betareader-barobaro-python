@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState, useTransition } from "react";
-import { FilePdf, Trash, UploadSimple } from "@phosphor-icons/react";
+import { CircleNotch, FilePdf, Trash, UploadSimple } from "@phosphor-icons/react";
 import { createClient } from "@/lib/supabase/client";
 import { PDF_MAX_BYTES } from "@/lib/site";
 import { recordPdf, removePdf } from "./actions";
@@ -143,9 +143,13 @@ export function PdfUpload({ userId, readerName, current, locked }: Props) {
           )}
 
           <div>
-            <button type="button" onClick={upload} disabled={!file || busy} className="btn btn-primary">
-              <UploadSimple size={18} weight="bold" aria-hidden />
-              {progress === "uploading" ? "올리는 중..." : "PDF 업로드"}
+            <button type="button" onClick={upload} disabled={!file || busy} className="btn btn-primary" aria-busy={busy}>
+              {busy ? (
+                <CircleNotch size={18} weight="bold" className="animate-spin" aria-hidden />
+              ) : (
+                <UploadSimple size={18} weight="bold" aria-hidden />
+              )}
+              {busy ? "올리는 중..." : "PDF 업로드"}
             </button>
           </div>
         </>

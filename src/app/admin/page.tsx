@@ -4,16 +4,13 @@ import { DownloadSimple, FileCsv } from "@phosphor-icons/react/dist/ssr";
 import { Nav } from "@/components/Nav";
 import { Footer } from "@/components/Footer";
 import { createClient } from "@/lib/supabase/server";
-import { acceptAllPending, setStatus } from "./actions";
+import { ANNOUNCE_LABEL, isAnnounced } from "@/lib/site";
+import { SubmitButton } from "@/components/SubmitButton";
+import { acceptAllPending } from "./actions";
 import { ManuscriptUpload } from "./ManuscriptUpload";
+import { StatusForm, type Status } from "./StatusForm";
 
 export const metadata: Metadata = { title: "관리자" };
-
-const STATUS_LABEL: Record<string, string> = {
-  pending: "심사 중",
-  accepted: "승인",
-  rejected: "미선정",
-};
 
 export default async function AdminPage() {
   const supabase = await createClient();
@@ -68,12 +65,19 @@ export default async function AdminPage() {
                 CSV 내려받기
               </a>
               <form action={acceptAllPending}>
-                <button type="submit" className="btn btn-primary !min-h-11 text-sm" disabled={counts.pending === 0}>
+                <SubmitButton className="btn btn-primary !min-h-11 text-sm" pendingText="승인 처리 중..." disabled={counts.pending === 0}>
                   심사 중 {counts.pending}명 모두 승인
-                </button>
+                </SubmitButton>
               </form>
             </div>
           </div>
+
+          {!isAnnounced() && (
+            <p className="mt-6 rounded-[var(--radius-field)] bg-[var(--yellow-soft)] px-4 py-3 text-sm font-medium text-[var(--yellow-ink)]">
+              선정 발표는 {ANNOUNCE_LABEL}에 자동으로 공개됩니다. 그전에는 여기서 승인해도 신청자 화면에는
+              "심사 중"으로 보이고, 원고 다운로드와 미션 제출도 발표 시각에 함께 열립니다.
+            </p>
+          )}
 
           <section className="mt-10 rounded-[var(--radius-card)] border border-[var(--line)] bg-[var(--surface)] p-6">
             <h2 className="text-lg font-bold">원고 PDF</h2>
@@ -130,15 +134,7 @@ export default async function AdminPage() {
                           </td>
                           <td className="px-4 py-3 text-[var(--muted)]">{a.address}</td>
                           <td className="px-4 py-3">
-                            <form action={setStatus} className="flex items-center gap-2">
-                              <input type="hidden" name="user_id" value={a.user_id} />
-                              <select name="status" defaultValue={a.status} className="field !py-1.5 !text-sm" aria-label={`${a.name} 상태`}>
-                                {Object.entries(STATUS_LABEL).map(([k, v]) => (
-                                  <option key={k} value={k}>{v}</option>
-                                ))}
-                              </select>
-                              <button type="submit" className="btn btn-secondary !min-h-9 !px-3 text-xs">저장</button>
-                            </form>
+                            <StatusForm key={`${a.user_id}-${a.status}`} userId={a.user_id} name={a.name} saved={a.status as Status} />
                           </td>
                           <td className="px-4 py-3">
                             {s?.review ? (

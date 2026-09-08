@@ -21,6 +21,7 @@ import {
   isAnnounced,
   isPastDeadline,
 } from "@/lib/site";
+import { SubmitButton } from "@/components/SubmitButton";
 import { ReviewForm } from "./ReviewForm";
 import { PdfUpload } from "./PdfUpload";
 
@@ -88,10 +89,10 @@ export default async function MyPage({ searchParams }: PageProps<"/my">) {
                 </Link>
               )}
               <form action="/auth/signout" method="post">
-                <button type="submit" className="btn btn-ghost !min-h-10 !px-4 text-sm">
+                <SubmitButton className="btn btn-ghost !min-h-10 !px-4 text-sm" pendingText="로그아웃 중...">
                   <SignOut size={18} weight="bold" aria-hidden />
                   로그아웃
-                </button>
+                </SubmitButton>
               </form>
             </div>
           </div>

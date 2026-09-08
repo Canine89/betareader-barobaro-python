@@ -2,6 +2,7 @@
 
 import { useActionState, useState } from "react";
 import { REVIEW_MAX_CHARS, REVIEW_MIN_CHARS, REVIEW_TARGET_CHARS } from "@/lib/site";
+import { CircleNotch } from "@phosphor-icons/react";
 import { saveReview, type ReviewState } from "./actions";
 
 export function ReviewForm({ initial, locked }: { initial: string; locked: boolean }) {
@@ -50,7 +51,8 @@ export function ReviewForm({ initial, locked }: { initial: string; locked: boole
       )}
 
       <div>
-        <button type="submit" className="btn btn-primary" disabled={locked || pending || !enough}>
+        <button type="submit" className="btn btn-primary" disabled={locked || pending || !enough} aria-busy={pending}>
+          {pending && <CircleNotch size={18} weight="bold" className="animate-spin" aria-hidden />}
           {pending ? "저장 중..." : initial ? "소감 다시 저장" : "소감 제출"}
         </button>
       </div>

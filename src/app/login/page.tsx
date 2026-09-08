@@ -4,6 +4,7 @@ import Image from "next/image";
 import { GoogleLogo } from "@phosphor-icons/react/dist/ssr";
 import { Nav } from "@/components/Nav";
 import { Footer } from "@/components/Footer";
+import { SubmitButton } from "@/components/SubmitButton";
 import { signInWithGoogle } from "./actions";
 
 export const metadata: Metadata = { title: "로그인" };
@@ -29,10 +30,10 @@ export default async function LoginPage({ searchParams }: PageProps<"/login">) {
 
             <form action={signInWithGoogle} className="mt-8">
               <input type="hidden" name="next" value={next} />
-              <button type="submit" className="btn btn-primary w-full text-base sm:w-auto">
+              <SubmitButton className="btn btn-primary w-full text-base sm:w-auto" pendingText="Google로 이동하는 중...">
                 <GoogleLogo size={20} weight="bold" aria-hidden />
                 Google로 계속하기
-              </button>
+              </SubmitButton>
             </form>
 
             {error && (
