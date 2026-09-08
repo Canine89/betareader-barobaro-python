@@ -3,7 +3,8 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { AnimatePresence, motion, useMotionValue, useReducedMotion, animate } from "motion/react";
-import { ArrowLeft, ArrowRight, X } from "@phosphor-icons/react";
+import { ArrowLeft, ArrowRight, ArrowsIn, MagnifyingGlassMinus, MagnifyingGlassPlus, X } from "@phosphor-icons/react";
+import { TransformComponent, TransformWrapper } from "react-zoom-pan-pinch";
 
 /*
   책 속 미리보기 "촤라락"
@@ -15,8 +16,8 @@ import { ArrowLeft, ArrowRight, X } from "@phosphor-icons/react";
 */
 
 const PAGE_COUNT = 32;
-const PAGE_W = 532.913;
-const PAGE_H = 728.504;
+const IMG_W = 2200; // public/pages 원본 크기
+const IMG_H = 3007;
 const pages = Array.from({ length: PAGE_COUNT }, (_, i) => ({
   n: i + 1,
   src: `/pages/p-${String(i + 1).padStart(2, "0")}.webp`,
@@ -133,8 +134,8 @@ export function PagePreview() {
                   <Image
                     src={p.src}
                     alt={`바로바로 파이썬 ${p.n}쪽 미리보기`}
-                    width={Math.round(PAGE_W)}
-                    height={Math.round(PAGE_H)}
+                    width={IMG_W}
+                    height={IMG_H}
                     sizes="210px"
                     draggable={false}
                     className="pointer-events-none block h-auto w-full"
@@ -171,39 +172,80 @@ export function PagePreview() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
-            className="fixed inset-0 z-50 flex items-center justify-center bg-[#0b1020]/85 p-4 backdrop-blur-sm"
-            onClick={() => setOpen(null)}
+            className="fixed inset-0 z-50 bg-[#0b1020]/90 backdrop-blur-sm"
+            onClick={(e) => {
+              // 이미지 바깥(배경)만 눌렀을 때 닫기
+              if ((e.target as HTMLElement).closest("img, button, [data-zoom-content]")) return;
+              setOpen(null);
+            }}
           >
-            <motion.div
+            <TransformWrapper
               key={open}
-              initial={reduce ? false : { scale: 0.94, y: 12, opacity: 0 }}
-              animate={{ scale: 1, y: 0, opacity: 1 }}
-              transition={{ type: "spring", stiffness: 260, damping: 26 }}
-              className="relative mb-14 max-h-[82dvh] overflow-hidden rounded-[8px] bg-white shadow-2xl"
-              onClick={(e) => e.stopPropagation()}
+              minScale={1}
+              maxScale={4}
+              centerOnInit
+              doubleClick={{ mode: "toggle", step: 1.5 }}
+              wheel={{ step: 0.06 }}
+              pinch={{ step: 5 }}
+              panning={{ velocityDisabled: true }}
             >
-              <Image
-                src={pages[open - 1].src}
-                alt={`바로바로 파이썬 ${open}쪽`}
-                width={1100}
-                height={1503}
-                sizes="(max-width: 768px) 92vw, 66vh"
-                priority
-                className="block h-[82dvh] w-auto max-w-[92vw] object-contain"
-              />
-            </motion.div>
+              {({ zoomIn, zoomOut, resetTransform }) => (
+                <>
+                  <TransformComponent
+                    wrapperStyle={{ width: "100%", height: "100%" }}
+                    contentStyle={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center" }}
+                  >
+                    <motion.div
+                      initial={reduce ? false : { scale: 0.96, opacity: 0 }}
+                      animate={{ scale: 1, opacity: 1 }}
+                      transition={{ duration: 0.25 }}
+                      className="overflow-hidden rounded-[8px] bg-white shadow-2xl"
+                    >
+                      <Image
+                        src={pages[open - 1].src}
+                        alt={`바로바로 파이썬 ${open}쪽`}
+                        width={IMG_W}
+                        height={IMG_H}
+                        sizes="(max-width: 768px) 100vw, 1400px"
+                        quality={90}
+                        priority
+                        draggable={false}
+                        className="block h-[80dvh] w-auto max-w-[94vw] select-none object-contain"
+                      />
+                    </motion.div>
+                  </TransformComponent>
 
-            <div className="absolute inset-x-0 bottom-4 flex items-center justify-center gap-3" onClick={(e) => e.stopPropagation()}>
-              <button type="button" onClick={() => setOpen((p) => (p && p > 1 ? p - 1 : p))} disabled={open <= 1} className="btn btn-secondary !min-h-10 !px-3" aria-label="이전 쪽">
-                <ArrowLeft size={18} weight="bold" aria-hidden />
-              </button>
-              <span className="rounded-full bg-white/10 px-4 py-2 text-sm font-semibold text-white">
-                {open} / {PAGE_COUNT}
-              </span>
-              <button type="button" onClick={() => setOpen((p) => (p && p < PAGE_COUNT ? p + 1 : p))} disabled={open >= PAGE_COUNT} className="btn btn-secondary !min-h-10 !px-3" aria-label="다음 쪽">
-                <ArrowRight size={18} weight="bold" aria-hidden />
-              </button>
-            </div>
+                  <div
+                    className="absolute inset-x-0 bottom-4 flex flex-wrap items-center justify-center gap-2"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <button type="button" onClick={() => setOpen((p) => (p && p > 1 ? p - 1 : p))} disabled={open <= 1} className="btn btn-secondary !min-h-10 !px-3" aria-label="이전 쪽">
+                      <ArrowLeft size={18} weight="bold" aria-hidden />
+                    </button>
+                    <span className="rounded-full bg-[#15181f]/85 px-4 py-2 text-sm font-semibold text-white ring-1 ring-white/20">
+                      {open} / {PAGE_COUNT}
+                    </span>
+                    <button type="button" onClick={() => setOpen((p) => (p && p < PAGE_COUNT ? p + 1 : p))} disabled={open >= PAGE_COUNT} className="btn btn-secondary !min-h-10 !px-3" aria-label="다음 쪽">
+                      <ArrowRight size={18} weight="bold" aria-hidden />
+                    </button>
+                    <span className="mx-2 hidden h-6 w-px bg-white/20 sm:block" aria-hidden />
+                    <button type="button" onClick={() => zoomOut()} className="btn btn-secondary !min-h-10 !px-3" aria-label="축소">
+                      <MagnifyingGlassMinus size={18} weight="bold" aria-hidden />
+                    </button>
+                    <button type="button" onClick={() => zoomIn()} className="btn btn-secondary !min-h-10 !px-3" aria-label="확대">
+                      <MagnifyingGlassPlus size={18} weight="bold" aria-hidden />
+                    </button>
+                    <button type="button" onClick={() => resetTransform()} className="btn btn-secondary !min-h-10 !px-3" aria-label="원래 크기">
+                      <ArrowsIn size={18} weight="bold" aria-hidden />
+                    </button>
+                  </div>
+                  <p className="pointer-events-none absolute left-4 top-4 rounded-full bg-[#15181f]/85 px-3 py-1.5 text-xs font-medium text-white ring-1 ring-white/20">
+                    휠·핀치·더블클릭으로 확대, 끌어서 이동
+                  </p>
+                </>
+              )}
+            </TransformWrapper>
+
             <button type="button" onClick={() => setOpen(null)} className="btn btn-secondary absolute right-4 top-4 !min-h-10 !px-3" aria-label="닫기">
               <X size={18} weight="bold" aria-hidden />
             </button>
