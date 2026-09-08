@@ -11,6 +11,7 @@ import {
 import { Nav } from "@/components/Nav";
 import { Footer } from "@/components/Footer";
 import { HeroStory } from "@/components/HeroStory";
+import { PagePreview } from "@/components/PagePreview";
 import { Reveal } from "@/components/Reveal";
 import {
   ANNOUNCE_LABEL,
@@ -67,6 +68,21 @@ export default function HomePage() {
       <main className="flex-1">
         {/* 히어로: 스크롤 스토리 (읽고 → 표시하고 → 추천하라) */}
         <HeroStory />
+
+        {/* 책 속 미리보기: 촤라락 펼쳐지는 페이지 */}
+        <section id="preview" className="scroll-mt-20 overflow-hidden py-16 sm:py-20">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6">
+            <Reveal>
+              <h2 className="text-3xl font-extrabold tracking-tight sm:text-4xl">책 속을 먼저 펼쳐 보세요</h2>
+              <p className="mt-3 max-w-[52ch] text-[var(--muted)]">
+                1장 「파이썬 시작하기」 1~32쪽입니다. 조판 초안이라 출간 시 달라질 수 있습니다.
+              </p>
+            </Reveal>
+          </div>
+          <div className="mx-auto mt-4 max-w-7xl sm:px-2">
+            <PagePreview />
+          </div>
+        </section>
 
         {/* 특전: 1 + 2 벤토 */}
         <section id="perks" className="scroll-mt-20 bg-[var(--surface-2)] py-14 sm:py-16">

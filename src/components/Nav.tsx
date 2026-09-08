@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { UserCircle } from "@phosphor-icons/react/dist/ssr";
 
 const links = [
+  { href: "/#preview", label: "미리보기" },
   { href: "/#perks", label: "특전" },
   { href: "/#missions", label: "미션" },
   { href: "/#schedule", label: "일정" },
