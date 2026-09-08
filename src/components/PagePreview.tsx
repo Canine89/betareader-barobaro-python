@@ -60,7 +60,7 @@ export function PagePreview() {
     [bounds.left, x],
   );
 
-  // 라이트박스 키보드
+  // 라이트박스: 키보드, 스크롤 잠금, 배경 클릭 닫기
   useEffect(() => {
     if (open === null) return;
     const onKey = (e: KeyboardEvent) => {
@@ -68,11 +68,32 @@ export function PagePreview() {
       if (e.key === "ArrowRight") setOpen((p) => (p !== null && p < PAGE_COUNT ? p + 1 : p));
       if (e.key === "ArrowLeft") setOpen((p) => (p !== null && p > 1 ? p - 1 : p));
     };
+    // 배경을 "가만히 눌렀다 뗀" 경우에만 닫는다. 끌기(이동)나 이미지·버튼·페이지 틀에서 시작한 조작은 무시.
+    // 확대 라이브러리가 문서 리스너를 먼저 잡으므로 window 캡처 단계에서 pointerdown/pointerup으로 직접 판정한다.
+    let start: { x: number; y: number; onBackdrop: boolean } | null = null;
+    const onDown = (e: PointerEvent) => {
+      const t = e.target instanceof Element ? e.target : null;
+      const box = document.querySelector("[data-lightbox]");
+      const inBox = !!(t && box && box.contains(t));
+      const onContent = !!t?.closest("img, button, [data-page]");
+      start = { x: e.clientX, y: e.clientY, onBackdrop: inBox && !onContent };
+    };
+    const onUp = (e: PointerEvent) => {
+      const s = start;
+      start = null;
+      if (!s || !s.onBackdrop) return;
+      if (Math.hypot(e.clientX - s.x, e.clientY - s.y) > 6) return;
+      setOpen(null);
+    };
     window.addEventListener("keydown", onKey);
+    window.addEventListener("pointerdown", onDown, true);
+    window.addEventListener("pointerup", onUp, true);
     const prev = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     return () => {
       window.removeEventListener("keydown", onKey);
+      window.removeEventListener("pointerdown", onDown, true);
+      window.removeEventListener("pointerup", onUp, true);
       document.body.style.overflow = prev;
     };
   }, [open]);
@@ -173,11 +194,7 @@ export function PagePreview() {
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
             className="fixed inset-0 z-50 bg-[#0b1020]/90 backdrop-blur-sm"
-            onClick={(e) => {
-              // 이미지 바깥(배경)만 눌렀을 때 닫기
-              if ((e.target as HTMLElement).closest("img, button, [data-zoom-content]")) return;
-              setOpen(null);
-            }}
+            data-lightbox
           >
             <TransformWrapper
               key={open}
@@ -199,6 +216,7 @@ export function PagePreview() {
                       initial={reduce ? false : { scale: 0.96, opacity: 0 }}
                       animate={{ scale: 1, opacity: 1 }}
                       transition={{ duration: 0.25 }}
+                      data-page
                       className="overflow-hidden rounded-[8px] bg-white shadow-2xl"
                     >
                       <Image
