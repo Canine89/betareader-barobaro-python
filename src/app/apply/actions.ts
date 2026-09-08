@@ -17,10 +17,13 @@ export async function submitApplication(
   _prev: ApplyState,
   formData: FormData,
 ): Promise<ApplyState> {
+  const zip = String(formData.get("zip") ?? "").trim();
+  const base = String(formData.get("base") ?? "").trim();
+  const detail = String(formData.get("detail") ?? "").trim();
   const values = {
     name: String(formData.get("name") ?? "").trim(),
     phone: String(formData.get("phone") ?? "").trim(),
-    address: String(formData.get("address") ?? "").trim(),
+    address: detail ? `(${zip}) ${base}, ${detail}` : `(${zip}) ${base}`,
     email: String(formData.get("email") ?? "").trim(),
   };
   const consent = formData.get("consent") === "on";
@@ -28,7 +31,8 @@ export async function submitApplication(
   const errors: ApplyState["errors"] = {};
   if (values.name.length < 1 || values.name.length > 50) errors.name = "이름을 입력해 주세요.";
   if (!PHONE_RE.test(values.phone)) errors.phone = "연락처를 숫자로 입력해 주세요. 예: 010-1234-5678";
-  if (values.address.length < 5) errors.address = "종이책을 받을 주소를 우편번호와 함께 입력해 주세요.";
+  if (!/^\d{5}$/.test(zip) || base.length < 5) errors.address = "주소 검색을 눌러 배송지 주소를 선택해 주세요.";
+  else if (detail.length > 100) errors.address = "상세 주소는 100자 이내로 적어 주세요.";
   if (!EMAIL_RE.test(values.email)) errors.email = "올바른 이메일 주소를 입력해 주세요.";
   if (!consent) errors.consent = "개인정보 수집·이용에 동의해야 신청할 수 있습니다.";
   if (Object.keys(errors).length) return { errors, values };

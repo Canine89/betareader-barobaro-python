@@ -4,6 +4,7 @@ import { useActionState } from "react";
 import Link from "next/link";
 import { CircleNotch } from "@phosphor-icons/react";
 import { submitApplication, type ApplyState } from "./actions";
+import { AddressField, parseAddress } from "./AddressField";
 
 type Props = {
   defaults: { name: string; phone: string; address: string; email: string };
@@ -30,12 +31,7 @@ export function ApplyForm({ defaults, isEdit }: Props) {
         {e.phone && <p className="error">{e.phone}</p>}
       </div>
 
-      <div className="grid gap-2">
-        <label htmlFor="address" className="label">주소</label>
-        <textarea id="address" name="address" rows={2} defaultValue={v.address} placeholder="(04001) 서울시 마포구 ○○로 12, 101동 202호" className="field resize-y" autoComplete="street-address" required aria-invalid={!!e.address} aria-describedby="address-help" />
-        <p id="address-help" className="help">종이책을 받을 주소입니다. 우편번호와 상세 주소까지 적어 주세요.</p>
-        {e.address && <p className="error">{e.address}</p>}
-      </div>
+      <AddressField defaults={parseAddress(v.address)} errors={e.address ? { base: e.address } : undefined} />
 
       <div className="grid gap-2">
         <label htmlFor="email" className="label">이메일 주소</label>
