@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { AnimatePresence, motion, useInView, useMotionValue, useReducedMotion, animate } from "motion/react";
-import { ArrowLeft, ArrowRight, ArrowsIn, MagnifyingGlassMinus, MagnifyingGlassPlus, X } from "@phosphor-icons/react";
+import { ArrowLeft, ArrowRight, ArrowsIn, CircleNotch, MagnifyingGlassMinus, MagnifyingGlassPlus, X } from "@phosphor-icons/react";
 import { TransformComponent, TransformWrapper } from "react-zoom-pan-pinch";
 
 /*
@@ -35,6 +35,7 @@ export function PagePreview() {
   const x = useMotionValue(0);
   const [bounds, setBounds] = useState({ left: 0, right: 0 });
   const [open, setOpen] = useState<number | null>(null);
+  const [loadedPage, setLoadedPage] = useState<number | null>(null); // 크게 보기 이미지 로딩 완료 쪽
   // 펼침 트리거는 가로로 긴 띠가 아니라 섹션 컨테이너 기준 (모바일에서도 확실히 발동)
   const spread = useInView(viewportRef, { once: true, amount: 0.35 });
   const dragging = useRef(false);
@@ -220,7 +221,7 @@ export function PagePreview() {
                       animate={{ scale: 1, opacity: 1 }}
                       transition={{ duration: 0.25 }}
                       data-page
-                      className="overflow-hidden rounded-[8px] bg-white shadow-2xl"
+                      className="relative overflow-hidden rounded-[8px] bg-white shadow-2xl"
                     >
                       <Image
                         src={pages[open - 1].src}
@@ -231,8 +232,17 @@ export function PagePreview() {
                         quality={90}
                         priority
                         draggable={false}
+                        onLoad={() => setLoadedPage(open)}
                         className="block h-[80dvh] w-auto max-w-[94vw] select-none object-contain"
                       />
+                      {loadedPage !== open && (
+                        <div className="absolute inset-0 flex items-center justify-center bg-white/80" aria-live="polite">
+                          <span className="inline-flex items-center gap-2 rounded-full bg-[#15181f]/85 px-4 py-2 text-sm font-semibold text-white">
+                            <CircleNotch size={18} weight="bold" className="animate-spin" aria-hidden />
+                            {open}쪽 불러오는 중
+                          </span>
+                        </div>
+                      )}
                     </motion.div>
                   </TransformComponent>
 
