@@ -18,10 +18,14 @@ import {
   APPLY_DEADLINE,
   APPLY_DEADLINE_LABEL,
   DEADLINE_LABEL,
+  READING_START,
+  READING_START_LABEL,
+  READING_START_SHORT,
   REVIEW_TARGET_CHARS,
   daysUntil,
   daysUntilDeadline,
   isApplyClosed,
+  isReadingStarted,
 } from "@/lib/site";
 
 export const dynamic = "force-dynamic";
@@ -37,7 +41,7 @@ const faqs = [
   },
   {
     q: "원고는 어떻게 받나요?",
-    a: `${ANNOUNCE_LABEL} 발표와 함께 선정된 분의 내 페이지에 원고 PDF 다운로드 버튼이 열립니다.`,
+    a: `선정된 분의 내 페이지에 ${READING_START_LABEL}부터 원고 PDF 다운로드 버튼이 열립니다. 베타리딩은 그날 시작합니다.`,
   },
   {
     q: "PDF 주석은 어떻게 남기나요?",
@@ -59,8 +63,16 @@ const faqs = [
 
 export default function HomePage() {
   const applyClosed = isApplyClosed();
+  const readingStarted = isReadingStarted();
   const applyDday = daysUntil(APPLY_DEADLINE);
+  const readingDday = daysUntil(READING_START);
   const dday = daysUntilDeadline();
+  // 단계별 D-day: 신청 마감 → 베타리딩 시작 → 미션 마감
+  const phase = !applyClosed
+    ? { title: "신청 마감까지", n: applyDday, note: `${APPLY_DEADLINE_LABEL} 자정에 신청이 닫힙니다.` }
+    : !readingStarted
+      ? { title: "베타리딩 시작까지", n: readingDday, note: `${READING_START_LABEL}에 원고가 공개되고 미션 제출이 열립니다.` }
+      : { title: "미션 마감까지", n: dday, note: `${DEADLINE_LABEL} 자정에 제출이 닫힙니다.` };
 
   return (
     <>
@@ -143,7 +155,7 @@ export default function HomePage() {
                 {DEADLINE_LABEL}까지, 두 가지만 해 주세요
               </h2>
               <p className="mt-3 max-w-[48ch] text-[var(--muted)]">
-                두 미션 모두 내 페이지에서 제출합니다. 선정 발표 후 열립니다.
+                두 미션 모두 내 페이지에서 제출합니다. {READING_START_SHORT} 베타리딩 시작과 함께 열립니다.
               </p>
             </Reveal>
 
@@ -206,26 +218,20 @@ export default function HomePage() {
           <div className="mx-auto max-w-7xl px-4 sm:px-6">
             <div className="grid grid-cols-1 gap-12 lg:grid-cols-12 lg:items-end">
               <Reveal className="lg:col-span-5">
-                <p className="text-lg font-semibold text-white/80">
-                  {applyClosed ? "미션 마감까지" : "신청 마감까지"}
-                </p>
+                <p className="text-lg font-semibold text-white/80">{phase.title}</p>
                 <p className="mt-2 flex items-baseline gap-2">
                   <span className="text-7xl font-black leading-none tracking-tighter sm:text-8xl">
-                    D-{applyClosed ? dday : applyDday}
+                    D-{phase.n}
                   </span>
                 </p>
-                <p className="mt-4 text-white/80">
-                  {applyClosed
-                    ? `${DEADLINE_LABEL} 자정에 제출이 닫힙니다.`
-                    : `${APPLY_DEADLINE_LABEL} 자정에 신청이 닫힙니다.`}
-                </p>
+                <p className="mt-4 text-white/80">{phase.note}</p>
               </Reveal>
               <Reveal delay={0.1} className="lg:col-span-7">
                 <ol className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
                   {[
                     { when: `${APPLY_DEADLINE_LABEL}까지`, what: "베타리더 신청", note: "구글 계정으로 로그인하고 신청서를 작성합니다." },
-                    { when: ANNOUNCE_LABEL, what: "선정 발표", note: "내 페이지에서 결과를 확인하고 원고 PDF를 내려받습니다." },
-                    { when: "발표 후", what: "원고 읽기", note: "읽으면서 오탈자와 오류에 주석을 남깁니다." },
+                    { when: ANNOUNCE_LABEL, what: "선정 발표", note: "내 페이지에서 선정 결과를 확인합니다." },
+                    { when: READING_START_LABEL, what: "베타리딩 시작", note: "원고 PDF가 공개됩니다. 읽으면서 오탈자에 주석을 남깁니다." },
                     { when: DEADLINE_LABEL, what: "미션 제출 마감", note: "소감과 주석 PDF를 제출합니다." },
                   ].map((s) => (
                     <li key={s.what} className="border-t border-white/30 pt-4">

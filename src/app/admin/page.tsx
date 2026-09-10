@@ -4,7 +4,7 @@ import { DownloadSimple, FileCsv } from "@phosphor-icons/react/dist/ssr";
 import { Nav } from "@/components/Nav";
 import { Footer } from "@/components/Footer";
 import { createClient } from "@/lib/supabase/server";
-import { ANNOUNCE_LABEL, isAnnounced } from "@/lib/site";
+import { ANNOUNCE_LABEL, READING_START_LABEL, isAnnounced, isReadingStarted } from "@/lib/site";
 import { SubmitButton } from "@/components/SubmitButton";
 import { acceptAllPending } from "./actions";
 import { ManuscriptUpload } from "./ManuscriptUpload";
@@ -72,10 +72,12 @@ export default async function AdminPage() {
             </div>
           </div>
 
-          {!isAnnounced() && (
+          {!isReadingStarted() && (
             <p className="mt-6 rounded-[var(--radius-field)] bg-[var(--yellow-soft)] px-4 py-3 text-sm font-medium text-[var(--yellow-ink)]">
-              선정 발표는 {ANNOUNCE_LABEL}에 자동으로 공개됩니다. 그전에는 여기서 승인해도 신청자 화면에는
-              "심사 중"으로 보이고, 원고 다운로드와 미션 제출도 발표 시각에 함께 열립니다.
+              {!isAnnounced()
+                ? `선정 결과는 ${ANNOUNCE_LABEL}에 자동으로 공개됩니다. 그전에는 여기서 승인해도 신청자 화면에는 "심사 중"으로 보입니다. `
+                : "선정 결과는 신청자에게 공개된 상태입니다. "}
+              원고 다운로드와 미션 제출은 {READING_START_LABEL}(베타리딩 시작)에 열립니다. 그 전까지 원고 PDF를 올려 두세요.
             </p>
           )}
 

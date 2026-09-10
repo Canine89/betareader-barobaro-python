@@ -17,9 +17,11 @@ import {
   ANNOUNCE_LABEL,
   APPLY_DEADLINE_LABEL,
   DEADLINE_LABEL,
+  READING_START_LABEL,
   daysUntilDeadline,
   isAnnounced,
   isPastDeadline,
+  isReadingStarted,
 } from "@/lib/site";
 import { SubmitButton } from "@/components/SubmitButton";
 import { ReviewForm } from "./ReviewForm";
@@ -50,13 +52,16 @@ export default async function MyPage({ searchParams }: PageProps<"/my">) {
   const past = isPastDeadline();
   const dday = daysUntilDeadline();
   const announced = isAnnounced();
+  const readingStarted = isReadingStarted();
   // 발표 시각 전에는 관리자가 미리 승인해 두어도 심사 중으로 보인다.
   const visibleStatus = app ? (announced ? app.status : "pending") : null;
   const accepted = visibleStatus === "accepted";
+  // 원고와 미션은 베타리딩 시작 시각부터 열린다.
+  const readingOpen = accepted && readingStarted;
 
   // 승인된 베타리더에게 원고 PDF 링크 제공
   let manuscripts: { name: string; url: string }[] = [];
-  if (accepted) {
+  if (readingOpen) {
     const { data: files } = await supabase.storage.from("manuscript").list("", { limit: 20 });
     const pdfs = (files ?? []).filter((f) => f.name.toLowerCase().endsWith(".pdf"));
     if (pdfs.length) {
@@ -149,7 +154,11 @@ export default async function MyPage({ searchParams }: PageProps<"/my">) {
           {accepted && (
             <section className="mt-6 rounded-[var(--radius-card)] bg-[var(--color-brand-blue)] p-6 text-white sm:p-8">
               <h2 className="text-lg font-bold">원고 PDF</h2>
-              {manuscripts.length ? (
+              {!readingOpen ? (
+                <p className="mt-3 text-white/85">
+                  베타리더로 선정되셨습니다! 원고 PDF는 {READING_START_LABEL}에 이 자리에서 내려받을 수 있습니다.
+                </p>
+              ) : manuscripts.length ? (
                 <ul className="mt-4 grid gap-2">
                   {manuscripts.map((m) => (
                     <li key={m.name}>
@@ -176,12 +185,14 @@ export default async function MyPage({ searchParams }: PageProps<"/my">) {
               </p>
             </div>
 
-            {!accepted ? (
+            {!readingOpen ? (
               <div className="mt-4 rounded-[var(--radius-card)] border border-dashed border-[var(--line)] p-6 text-[var(--muted)]">
                 {app
                   ? visibleStatus === "rejected"
                     ? "이번 베타리딩에는 참여하지 못하게 되었습니다. 관심 가져 주셔서 고맙습니다."
-                    : `${ANNOUNCE_LABEL} 발표 후 선정된 분에게 소감 작성과 PDF 업로드가 열립니다.`
+                    : accepted
+                      ? `${READING_START_LABEL}에 원고와 함께 소감 작성과 PDF 업로드가 열립니다.`
+                      : `${ANNOUNCE_LABEL}에 선정 결과가 발표되고, 선정된 분에게는 ${READING_START_LABEL}에 미션이 열립니다.`
                   : `신청서를 먼저 작성해 주세요. 신청은 ${APPLY_DEADLINE_LABEL}까지 받습니다.`}
               </div>
             ) : (
