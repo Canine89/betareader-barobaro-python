@@ -4,9 +4,10 @@ import { DownloadSimple, FileCsv } from "@phosphor-icons/react/dist/ssr";
 import { Nav } from "@/components/Nav";
 import { Footer } from "@/components/Footer";
 import { createClient } from "@/lib/supabase/server";
-import { ANNOUNCE_LABEL, READING_START_LABEL, isAnnounced, isReadingStarted } from "@/lib/site";
+import { DEADLINE_LABEL, APPLY_DEADLINE_LABEL } from "@/lib/site";
+import { getSettings } from "@/lib/settings";
 import { SubmitButton } from "@/components/SubmitButton";
-import { acceptAllPending } from "./actions";
+import { acceptAllPending, setReadingOpen } from "./actions";
 import { ManuscriptUpload } from "./ManuscriptUpload";
 import { StatusForm, type Status } from "./StatusForm";
 
@@ -21,10 +22,11 @@ export default async function AdminPage() {
   const { data: isAdmin } = await supabase.rpc("is_admin");
   if (!isAdmin) redirect("/my");
 
-  const [{ data: apps }, { data: subs }, { data: manuscripts }] = await Promise.all([
+  const [{ data: apps }, { data: subs }, { data: manuscripts }, settings] = await Promise.all([
     supabase.from("applications").select("*").order("created_at", { ascending: false }),
     supabase.from("submissions").select("*"),
     supabase.storage.from("manuscript").list("", { limit: 20 }),
+    getSettings(supabase),
   ]);
   const subByUser = new Map((subs ?? []).map((s) => [s.user_id, s]));
 
@@ -72,14 +74,29 @@ export default async function AdminPage() {
             </div>
           </div>
 
-          {!isReadingStarted() && (
-            <p className="mt-6 rounded-[var(--radius-field)] bg-[var(--yellow-soft)] px-4 py-3 text-sm font-medium text-[var(--yellow-ink)]">
-              {!isAnnounced()
-                ? `선정 결과는 ${ANNOUNCE_LABEL}에 자동으로 공개됩니다. 그전에는 여기서 승인해도 신청자 화면에는 "심사 중"으로 보입니다. `
-                : "선정 결과는 신청자에게 공개된 상태입니다. "}
-              원고 다운로드와 미션 제출은 {READING_START_LABEL}(베타리딩 시작)에 열립니다. 그 전까지 원고 PDF를 올려 두세요.
-            </p>
-          )}
+          <section className={`mt-8 rounded-[var(--radius-card)] p-6 ${settings.reading_open ? "bg-[var(--accent-soft)]" : "bg-[var(--yellow-soft)]"}`}>
+            <div className="flex flex-wrap items-center justify-between gap-4">
+              <div>
+                <h2 className="text-lg font-bold">
+                  베타리딩 {settings.reading_open ? "진행 중" : "시작 전"}
+                </h2>
+                <p className="mt-1 max-w-[60ch] text-sm text-[var(--muted)]">
+                  {settings.reading_open
+                    ? `선정된 베타리더에게 원고 다운로드와 미션 제출이 열려 있습니다. 미션 마감은 ${DEADLINE_LABEL}입니다.`
+                    : `승인 결과는 신청자에게 바로 보이지만, 원고 다운로드와 미션 제출은 이 스위치를 켤 때 열립니다. 2교 원고를 아래에 올리고 선정자에게 개별 연락한 뒤 켜 주세요. 신청 마감은 ${APPLY_DEADLINE_LABEL}입니다.`}
+                </p>
+              </div>
+              <form action={setReadingOpen}>
+                <input type="hidden" name="reading_open" value={settings.reading_open ? "false" : "true"} />
+                <SubmitButton
+                  className={settings.reading_open ? "btn btn-secondary !min-h-11 text-sm" : "btn btn-primary !min-h-11 text-sm"}
+                  pendingText="반영 중..."
+                >
+                  {settings.reading_open ? "베타리딩 잠시 닫기" : "베타리딩 시작 (원고 공개)"}
+                </SubmitButton>
+              </form>
+            </div>
+          </section>
 
           <section className="mt-10 rounded-[var(--radius-card)] border border-[var(--line)] bg-[var(--surface)] p-6">
             <h2 className="text-lg font-bold">원고 PDF</h2>

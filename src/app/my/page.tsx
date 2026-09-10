@@ -13,16 +13,8 @@ import {
 import { Nav } from "@/components/Nav";
 import { Footer } from "@/components/Footer";
 import { createClient } from "@/lib/supabase/server";
-import {
-  ANNOUNCE_LABEL,
-  APPLY_DEADLINE_LABEL,
-  DEADLINE_LABEL,
-  READING_START_LABEL,
-  daysUntilDeadline,
-  isAnnounced,
-  isPastDeadline,
-  isReadingStarted,
-} from "@/lib/site";
+import { APPLY_DEADLINE_LABEL, DEADLINE_LABEL, daysUntilDeadline, isPastDeadline } from "@/lib/site";
+import { getSettings } from "@/lib/settings";
 import { SubmitButton } from "@/components/SubmitButton";
 import { ReviewForm } from "./ReviewForm";
 import { PdfUpload } from "./PdfUpload";
@@ -43,21 +35,20 @@ export default async function MyPage({ searchParams }: PageProps<"/my">) {
   } = await supabase.auth.getUser();
   if (!user) redirect("/login?next=/my");
 
-  const [{ data: app }, { data: sub }, { data: isAdmin }] = await Promise.all([
+  const [{ data: app }, { data: sub }, { data: isAdmin }, settings] = await Promise.all([
     supabase.from("applications").select("*").eq("user_id", user.id).maybeSingle(),
     supabase.from("submissions").select("*").eq("user_id", user.id).maybeSingle(),
     supabase.rpc("is_admin"),
+    getSettings(supabase),
   ]);
 
   const past = isPastDeadline();
   const dday = daysUntilDeadline();
-  const announced = isAnnounced();
-  const readingStarted = isReadingStarted();
-  // 발표 시각 전에는 관리자가 미리 승인해 두어도 심사 중으로 보인다.
-  const visibleStatus = app ? (announced ? app.status : "pending") : null;
+  // 선정 결과는 관리자가 승인하는 즉시 보인다.
+  const visibleStatus = app ? app.status : null;
   const accepted = visibleStatus === "accepted";
-  // 원고와 미션은 베타리딩 시작 시각부터 열린다.
-  const readingOpen = accepted && readingStarted;
+  // 원고와 미션은 관리자가 "베타리딩 시작"을 켠 뒤에 열린다.
+  const readingOpen = accepted && settings.reading_open;
 
   // 승인된 베타리더에게 원고 PDF 링크 제공
   let manuscripts: { name: string; url: string }[] = [];
@@ -104,18 +95,13 @@ export default async function MyPage({ searchParams }: PageProps<"/my">) {
 
           {sp.applied === "1" && (
             <p role="status" className="mt-6 rounded-[var(--radius-field)] bg-[var(--accent-soft)] px-4 py-3 text-sm font-medium text-[var(--accent)]">
-              신청서를 받았습니다. 선정 결과는 {ANNOUNCE_LABEL}에 이 페이지에서 확인할 수 있습니다.
+              신청서를 받았습니다. 선정 결과는 모집 마감 후 이 페이지에서 확인할 수 있고, 선정된 분께는 개별 연락을 드립니다.
             </p>
           )}
 
           {/* 신청 상태 */}
           <section className="mt-10 rounded-[var(--radius-card)] border border-[var(--line)] bg-[var(--surface)] p-6 sm:p-8">
             <h2 className="text-lg font-bold">신청 상태</h2>
-            {app && !announced && (
-              <p className="mt-3 text-sm text-[var(--muted)]">
-                선정 결과는 {ANNOUNCE_LABEL}에 이곳에서 발표됩니다.
-              </p>
-            )}
             {app ? (
               (() => {
                 const s = STATUS[visibleStatus as keyof typeof STATUS];
@@ -156,7 +142,7 @@ export default async function MyPage({ searchParams }: PageProps<"/my">) {
               <h2 className="text-lg font-bold">원고 PDF</h2>
               {!readingOpen ? (
                 <p className="mt-3 text-white/85">
-                  베타리더로 선정되셨습니다! 원고 PDF는 {READING_START_LABEL}에 이 자리에서 내려받을 수 있습니다.
+                  베타리더로 선정되셨습니다! 2교 원고가 준비되는 대로 개별 연락을 드리고, 이 자리에 원고 PDF 다운로드 버튼이 열립니다.
                 </p>
               ) : manuscripts.length ? (
                 <ul className="mt-4 grid gap-2">
@@ -191,8 +177,8 @@ export default async function MyPage({ searchParams }: PageProps<"/my">) {
                   ? visibleStatus === "rejected"
                     ? "이번 베타리딩에는 참여하지 못하게 되었습니다. 관심 가져 주셔서 고맙습니다."
                     : accepted
-                      ? `${READING_START_LABEL}에 원고와 함께 소감 작성과 PDF 업로드가 열립니다.`
-                      : `${ANNOUNCE_LABEL}에 선정 결과가 발표되고, 선정된 분에게는 ${READING_START_LABEL}에 미션이 열립니다.`
+                      ? "원고가 공개되는 베타리딩 시작과 함께 소감 작성과 PDF 업로드가 열립니다. 시작 시점은 개별 연락으로 안내드립니다."
+                      : `모집 마감(${APPLY_DEADLINE_LABEL}) 후 선정 결과가 여기에 표시되고, 선정된 분께는 원고 준비 후 개별 연락을 드립니다.`
                   : `신청서를 먼저 작성해 주세요. 신청은 ${APPLY_DEADLINE_LABEL}까지 받습니다.`}
               </div>
             ) : (

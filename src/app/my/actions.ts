@@ -2,7 +2,8 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
-import { REVIEW_MAX_CHARS, REVIEW_MIN_CHARS, isPastDeadline, isReadingStarted } from "@/lib/site";
+import { REVIEW_MAX_CHARS, REVIEW_MIN_CHARS, isPastDeadline } from "@/lib/site";
+import { getSettings } from "@/lib/settings";
 
 export type ReviewState = { ok?: boolean; error?: string; savedAt?: string };
 
@@ -12,12 +13,11 @@ async function requireAcceptedUser() {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) return { supabase, user: null, error: "로그인이 필요합니다." };
-  const { data: app } = await supabase
-    .from("applications")
-    .select("status")
-    .eq("user_id", user.id)
-    .maybeSingle();
-  if (app?.status !== "accepted" || !isReadingStarted()) {
+  const [{ data: app }, settings] = await Promise.all([
+    supabase.from("applications").select("status").eq("user_id", user.id).maybeSingle(),
+    getSettings(supabase),
+  ]);
+  if (app?.status !== "accepted" || !settings.reading_open) {
     return { supabase, user: null, error: "선정된 베타리더만 베타리딩 시작 이후에 제출할 수 있습니다." };
   }
   return { supabase, user, error: null };

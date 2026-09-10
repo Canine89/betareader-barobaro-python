@@ -4,7 +4,7 @@ import { Nav } from "@/components/Nav";
 import { Footer } from "@/components/Footer";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
-import { ANNOUNCE_LABEL, APPLY_DEADLINE_LABEL, isApplyClosed } from "@/lib/site";
+import { APPLY_DEADLINE_LABEL, isApplyClosed } from "@/lib/site";
 import { ApplyForm } from "./ApplyForm";
 
 export const metadata: Metadata = { title: "베타리더 신청" };
@@ -39,7 +39,7 @@ export default async function ApplyPage() {
             <h1 className="text-3xl font-extrabold tracking-tight sm:text-4xl">모집이 마감되었습니다</h1>
             <p className="mt-3 max-w-[44ch] leading-relaxed text-[var(--muted)]">
               베타리더 신청은 {APPLY_DEADLINE_LABEL}에 마감되었습니다. 관심 가져 주셔서 고맙습니다.
-              선정 결과는 {ANNOUNCE_LABEL}에 발표됩니다.
+              선정된 분께는 개별 연락을 드립니다.
             </p>
             <Link href="/" className="btn btn-secondary mt-8">
               처음으로

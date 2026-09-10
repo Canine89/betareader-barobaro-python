@@ -43,3 +43,12 @@ export async function acceptAllPending() {
 export async function refreshAdmin() {
   revalidatePath("/admin");
 }
+
+/** 베타리딩 시작/중지: 켜면 선정자에게 원고 다운로드와 미션 제출이 열린다 */
+export async function setReadingOpen(formData: FormData) {
+  const open = formData.get("reading_open") === "true";
+  const supabase = await requireAdmin();
+  await supabase.from("site_settings").update({ reading_open: open, updated_at: new Date().toISOString() }).eq("id", 1);
+  revalidatePath("/admin");
+  revalidatePath("/my");
+}
