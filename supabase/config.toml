@@ -1,5 +1,5 @@
 # Supabase 프로젝트 설정. `supabase config push`로 원격에 반영한다.
-project_id = "urnkrvkrctckwwuipmip"
+project_id = "dkmdwycusqzphkqeuwcv"
 
 [auth]
 site_url = "env(SUPABASE_AUTH_SITE_URL)"
